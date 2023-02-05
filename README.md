@@ -1,6 +1,6 @@
 This project provides algorithms to sort Quantified Boolean Formulas (QBF) with respect to certain metrics. 
 
-== Compilation ==
+# Compilation
 
 A `CMakeLists.txt` file is provided with the project. To compile with cmake, run the following:
 ```
@@ -11,7 +11,7 @@ make
 ```
 An executable file `qbfsort` should then be in the build directory.
 
-== Usage ==
+# Usage
 
 Both the input QBF and the output QBF are in the [QDIMACS standard](https://www.qbflib.org/qdimacs.html). By default, the program reads the input QBF from stdin and writes the output QBF to stdout. Of course, these can be redirected to files, so a typical call might look like:
 ```
