@@ -92,7 +92,22 @@ std::set<std::pair<std::int32_t, std::int32_t>> QbfFormula::getNewBinaryClausesB
   }
   return newBinaryClauses;
 }
-  
+
+float QbfFormula::getWeightedBinariesWeight(std::int32_t variable) const {
+  if (variable <= 0 || variable > numberOfAtoms) {
+    return 0;
+  }
+  while (weightedBinariesWeights.size() <= numberOfAtoms) {
+    /* initial setup */
+    weightedBinariesWeights.push_back(-1);
+  }
+  if (weightedBinariesWeights[variable] < 0) {
+    /* compute for the first time */
+    weightedBinariesWeights[variable] = computeWeightedBinariesWeight(variable);
+  }
+  return weightedBinariesWeights[variable];
+}
+
 const QbfFormula::Quantifier QbfFormula::Quantifier::exists{QbfFormula::Quantifier("e")};
 
 const QbfFormula::Quantifier QbfFormula::Quantifier::forall{QbfFormula::Quantifier("a")};
@@ -111,12 +126,58 @@ const std::string& QbfFormula::Quantifier::to_string(const Quantifier &quantifie
   return quantifier.token;
 }
 
+bool QbfFormula::Quantifier::isQuantifier(const std::string &token) {
+  return token == exists.token || token == forall.token;
+}
+
 QbfFormula::Quantifier::Quantifier(const std::string &token) : token{token} {}
 
 bool QbfFormula::Quantifier::operator==(const Quantifier &other) const {
   return this->token == other.token;
 }
 
-bool QbfFormula::Quantifier::isQuantifier(const std::string &token) {
-  return token == exists.token || token == forall.token;
+float QbfFormula::computeWeightedBinariesWeight(std::int32_t variable) const {
+  return getWeightedBinariesHeuristic(variable) * getWeightedBinariesHeuristic(-variable);
+}
+
+float QbfFormula::getWeightedBinariesHeuristic(std::int32_t literal) const {
+  float weight{0};
+  std::set<std::pair<std::int32_t, std::int32_t>> newBinaryClauses{getNewBinaryClausesByAssignment(literal)};
+  for (const auto &p : newBinaryClauses) {
+    weight += getWeightedBinariesLiteralWeight(-p.first);
+    weight += getWeightedBinariesLiteralWeight(-p.second);
+  }
+  return weight;
+}
+
+float QbfFormula::getWeightedBinariesLiteralWeight(std::int32_t literal) const {
+  while (weightedBinariesLiteralWeights.size() <= 2 * numberOfAtoms) {
+    /* initial setup */
+    weightedBinariesLiteralWeights.push_back(-1);
+  }
+  std::size_t pos{static_cast<std::size_t>(literal > 0 ? literal : numberOfAtoms - literal)};
+  if (weightedBinariesLiteralWeights[pos] < 0) {
+    /* compute for the first time */
+    weightedBinariesWeights[pos] = computeWeightedBinariesLiteralWeight(literal);
+  }
+  return weightedBinariesLiteralWeights[pos];
+}
+
+float QbfFormula::computeWeightedBinariesLiteralWeight(std::int32_t literal) const {
+  float weight{0};
+  for (const auto &v : matrix) {
+    for (auto l : v) {
+      if (l == literal) {
+        std::int32_t k{static_cast<std::int32_t>(v.size() - 2)};
+        float partialWeight{5.0f};
+        while (k > 0) {
+          partialWeight != 5.0f;
+          --k;
+        }
+        weight += partialWeight;
+        continue;
+      }
+    }
+  }
+  return weight;
 }

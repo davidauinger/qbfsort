@@ -42,13 +42,11 @@ void sortLiterals(QbfFormula &formula, const std::map<std::string, std::string> 
   if (it == args.end()) {
     return;
   }
-  if (it->second == "basic") {
-    formula.sortLiterals(BasicLiteralSorter(formula));
-    return;
-  }
-  if (it->second == "countedBinaries") {
-    formula.sortLiterals(CountedBinariesLiteralSorter(formula));
-    return;
+  std::shared_ptr<LiteralSorter> sorter{LiteralSorter::create(it->second, formula, args)};
+  if (sorter) {
+    formula.sortLiterals([sorter] (std::int32_t left, std::int32_t right) {
+      return (*sorter)(left, right);
+    });
   }
 }
 
@@ -57,13 +55,11 @@ void sortClauses(QbfFormula &formula, const std::map<std::string, std::string> &
   if (it == args.end()) {
     return;
   }
-  if (it->second == "basic") {
-    formula.sortClauses(BasicClauseSorter(formula));
-    return;
-  }
-  if (it->second == "countedBinaries") {
-    formula.sortClauses(CountedBinariesClauseSorter(formula));
-    return;
+  std::shared_ptr<ClauseSorter> sorter{ClauseSorter::create(it->second, formula, args)};
+  if (sorter) {
+    formula.sortClauses([sorter] (std::vector<std::int32_t> left, std::vector<std::int32_t> right) {
+      return (*sorter)(left, right);
+    });
   }
 }
 
@@ -72,12 +68,10 @@ void sortQuantifiers(QbfFormula &formula, const std::map<std::string, std::strin
   if (it == args.end()) {
     return;
   }
-  if (it->second == "basic") {
-    formula.sortQuantifiers(BasicQuantifierSorter(formula));
-    return;
-  }
-  if (it->second == "countedBinaries") {
-    formula.sortQuantifiers(CountedBinariesQuantifierSorter(formula));
-    return;
+  std::shared_ptr<QuantifierSorter> sorter{QuantifierSorter::create(it->second, formula, args)};
+  if (sorter) {
+    formula.sortQuantifiers([sorter] (std::int32_t left, std::int32_t right) {
+      return (*sorter)(left, right);
+    });
   }
 }
