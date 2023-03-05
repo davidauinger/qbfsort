@@ -44,8 +44,12 @@ QbfFormula QbfFormula::fromStream(std::istream &from) {
       formula.matrix.back().push_back(atom);
       from >> token;
     }
+    if (from.eof()) {
+      throw std::runtime_error("unexpected end of file during before end of clause");
+    }
     from >> token;
   }
+  formula.precomputeFrequencies();
   return formula;
 }
 
@@ -82,15 +86,36 @@ void QbfFormula::sortQuantifiers(std::function<bool(std::int32_t, std::int32_t)>
   }
 }
 
+std::int32_t QbfFormula::getFrequency(std::int32_t literal) const {
+  return frequencies.at(std::abs(literal));
+}
+
 std::set<std::pair<std::int32_t, std::int32_t>> QbfFormula::getNewBinaryClausesByAssignment(std::int32_t literal) const {
   std::set<std::pair<std::int32_t, std::int32_t>> newBinaryClauses;
-  for (const std::vector<std::int32_t> v : matrix) {
+  for (const std::vector<std::int32_t> &v : matrix) {
     auto it{std::find(v.begin(), v.end(), -literal)};
     if (v.size() == 3 && std::find(v.begin(), v.end(), -literal) != v.end()) {
       newBinaryClauses.emplace(std::make_pair(v[0] != -literal ? v[0] : v[1], v[2] != -literal ? v[2] : v[1]));
     }
   }
   return newBinaryClauses;
+}
+
+void QbfFormula::precomputeFrequencies() {
+  frequencies.clear();
+  frequencies.push_back(0);
+  for (std::int32_t a{1}; a <= numberOfAtoms; ++a) {
+    std::int32_t frequency{0};
+    for (const std::vector<std::int32_t> &v : matrix) {
+      auto it{std::find_if(v.begin(), v.end(), [a] (std::int32_t i) {
+        return i == a || i == -a;
+      })};
+      if (it != v.end()) {
+        ++frequency;
+      }
+    }
+    frequencies.push_back(frequency);
+  }
 }
 
 float QbfFormula::getWeightedBinariesWeight(std::int32_t variable) const {
@@ -171,7 +196,7 @@ float QbfFormula::computeWeightedBinariesLiteralWeight(std::int32_t literal) con
         std::int32_t k{static_cast<std::int32_t>(v.size() - 2)};
         float partialWeight{5.0f};
         while (k > 0) {
-          partialWeight != 5.0f;
+          partialWeight /= 5.0f;
           --k;
         }
         weight += partialWeight;
