@@ -40,7 +40,7 @@ bool BasicQuantifierSorter::sort(std::int32_t left, std::int32_t right) const {
 FrequencyQuantifierSorter::FrequencyQuantifierSorter(const QbfFormula &formula) : QuantifierSorter(formula) {}
 
 bool FrequencyQuantifierSorter::sort(std::int32_t left, std::int32_t right) const {
-  return formula.getFrequency(left) > formula.getFrequency(right);
+  return formula.getFrequencyVariable(std::abs(left)) > formula.getFrequencyVariable(std::abs(right));
 }
 
 CountedBinariesQuantifierSorter::CountedBinariesQuantifierSorter(const QbfFormula &formula) : QuantifierSorter(formula) {}
@@ -50,7 +50,7 @@ bool CountedBinariesQuantifierSorter::sort(std::int32_t left, std::int32_t right
 }
 
 std::size_t CountedBinariesQuantifierSorter::getNewBinariesCount(std::int32_t literal) const {
-  return formula.getNewBinaryClausesByAssignment(literal).size();
+  return formula.getNewBinaryClausesByAssignment(literal).size() + formula.getNewBinaryClausesByAssignment(-literal).size();
 }
 
 WeightedBinariesQuantifierSorter::WeightedBinariesQuantifierSorter(const QbfFormula &formula) : QuantifierSorter(formula) {}

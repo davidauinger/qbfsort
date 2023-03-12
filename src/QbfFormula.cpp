@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <string>
 
-#include <iostream>
+#include <json/json.h>
 
 QbfFormula QbfFormula::fromStream(std::istream &from) {
   QbfFormula formula;
@@ -70,6 +70,24 @@ void QbfFormula::toStream(const QbfFormula &formula, std::ostream &to) {
   }
 }
 
+void QbfFormula::printStatistics(std::ostream &to) const {
+  Json::Value root;
+  Json::StreamWriterBuilder builder;
+  const std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+  root["NumberOfAtoms"] = numberOfAtoms;
+  root["NumberOfClauses"] = matrix.size();
+  for (std::size_t a{1}; a <= numberOfAtoms; ++a) {
+    root["Frequencies"]["PositiveLiterals"].append(getFrequencyLiteral(a));
+    root["Frequencies"]["NegativeLiterals"].append(getFrequencyLiteral(-a));
+    root["Frequencies"]["Variables"].append(getFrequencyVariable(a));
+  }
+  for (const std::vector<std::int32_t> &c : matrix) {
+    root["Frequencies"]["ClauseLiteralSums"].append(getFrequencyClauseLiteralSum(c));
+    root["Frequencies"]["ClauseVariableSums"].append(getFrequencyClauseVariableSum(c));
+  }
+  writer->write(root, &to);
+}
+
 void QbfFormula::sortLiterals(std::function<bool(std::int32_t, std::int32_t)> sorter) {
   for (auto &v : matrix) {
     std::sort(v.begin(), v.end(), sorter);
@@ -86,14 +104,33 @@ void QbfFormula::sortQuantifiers(std::function<bool(std::int32_t, std::int32_t)>
   }
 }
 
-std::int32_t QbfFormula::getFrequency(std::int32_t literal) const {
-  return frequencies.at(std::abs(literal));
+std::int32_t QbfFormula::getFrequencyLiteral(std::int32_t literal) const {
+  return literal > 0 ? frequenciesPositiveLiterals.at(literal) : frequenciesNegativeLiterals.at(-literal);
+}
+
+std::int32_t QbfFormula::getFrequencyVariable(std::int32_t variable) const {
+  return frequenciesPositiveLiterals.at(variable) + frequenciesNegativeLiterals.at(variable);
+}
+
+std::int32_t QbfFormula::getFrequencyClauseLiteralSum(const std::vector<std::int32_t> &clause) const {
+  std::int32_t literalSum{0};
+  for (std::int32_t l : clause) {
+    literalSum += getFrequencyLiteral(l);
+  }
+  return literalSum;
+}
+
+std::int32_t QbfFormula::getFrequencyClauseVariableSum(const std::vector<std::int32_t> &clause) const {
+  std::int32_t variableSum{0};
+  for (std::int32_t l : clause) {
+    variableSum += getFrequencyVariable(std::abs(l));
+  }
+  return variableSum;
 }
 
 std::set<std::pair<std::int32_t, std::int32_t>> QbfFormula::getNewBinaryClausesByAssignment(std::int32_t literal) const {
   std::set<std::pair<std::int32_t, std::int32_t>> newBinaryClauses;
   for (const std::vector<std::int32_t> &v : matrix) {
-    auto it{std::find(v.begin(), v.end(), -literal)};
     if (v.size() == 3 && std::find(v.begin(), v.end(), -literal) != v.end()) {
       newBinaryClauses.emplace(std::make_pair(v[0] != -literal ? v[0] : v[1], v[2] != -literal ? v[2] : v[1]));
     }
@@ -102,19 +139,23 @@ std::set<std::pair<std::int32_t, std::int32_t>> QbfFormula::getNewBinaryClausesB
 }
 
 void QbfFormula::precomputeFrequencies() {
-  frequencies.clear();
-  frequencies.push_back(0);
+  frequenciesPositiveLiterals.clear();
+  frequenciesPositiveLiterals.push_back(0);
+  frequenciesNegativeLiterals.clear();
+  frequenciesNegativeLiterals.push_back(0);
   for (std::int32_t a{1}; a <= numberOfAtoms; ++a) {
-    std::int32_t frequency{0};
+    std::int32_t frequencyPositive{0};
+    std::int32_t frequencyNegative{0};
     for (const std::vector<std::int32_t> &v : matrix) {
-      auto it{std::find_if(v.begin(), v.end(), [a] (std::int32_t i) {
-        return i == a || i == -a;
-      })};
-      if (it != v.end()) {
-        ++frequency;
+      if (std::count(v.begin(), v.end(), a)) {
+        ++frequencyPositive;
+      }
+      if (std::count(v.begin(), v.end(), -a)) {
+        ++frequencyNegative;
       }
     }
-    frequencies.push_back(frequency);
+    frequenciesPositiveLiterals.push_back(frequencyPositive);
+    frequenciesNegativeLiterals.push_back(frequencyNegative);
   }
 }
 

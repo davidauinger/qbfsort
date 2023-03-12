@@ -39,7 +39,6 @@ public:
   FrequencyClauseSorter(const QbfFormula &formula);
 private:
   bool sort(const std::vector<std::int32_t> &left, const std::vector<std::int32_t> &right) const override;
-  std::int32_t getFrequencies(const std::vector<std::int32_t> &literals) const;
 };
 
 class CountedBinariesClauseSorter : public ClauseSorter

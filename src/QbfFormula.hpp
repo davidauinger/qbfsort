@@ -13,10 +13,14 @@ class QbfFormula
 public:
   static QbfFormula fromStream(std::istream &from);
   static void toStream(const QbfFormula &formula, std::ostream &to);
+  void printStatistics(std::ostream &to) const;
   void sortLiterals(std::function<bool(std::int32_t, std::int32_t)> sorter);
   void sortClauses(std::function<bool(std::vector<std::int32_t>, std::vector<std::int32_t>)> sorter);
   void sortQuantifiers(std::function<bool(std::int32_t, std::int32_t)> sorter);
-  std::int32_t getFrequency(std::int32_t literal) const;
+  std::int32_t getFrequencyLiteral(std::int32_t literal) const;
+  std::int32_t getFrequencyVariable(std::int32_t variable) const;
+  std::int32_t getFrequencyClauseLiteralSum(const std::vector<std::int32_t> &clause) const;
+  std::int32_t getFrequencyClauseVariableSum(const std::vector<std::int32_t> &clause) const;
   std::set<std::pair<std::int32_t, std::int32_t>> getNewBinaryClausesByAssignment(std::int32_t literal) const;
   float getWeightedBinariesWeight(std::int32_t variable) const;
 private:
@@ -38,7 +42,8 @@ private:
   std::int32_t numberOfAtoms;
   std::vector<std::pair<Quantifier, std::vector<std::int32_t>>> prefix;
   std::vector<std::vector<std::int32_t>> matrix;
-  std::vector<std::int32_t> frequencies;
+  std::vector<std::int32_t> frequenciesPositiveLiterals;
+  std::vector<std::int32_t> frequenciesNegativeLiterals;
   mutable std::vector<float> weightedBinariesWeights;
   mutable std::vector<float> weightedBinariesLiteralWeights;
   QbfFormula() = default;
