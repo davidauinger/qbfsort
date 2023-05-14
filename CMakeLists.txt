@@ -1,10 +1,11 @@
 project(qbfsort)
 cmake_minimum_required(VERSION 3.18)
 find_package(jsoncpp REQUIRED)
-set(WITH_TESTS)
+option(WITH_TESTS "include tests in build directory")
 set(CMAKE_CXX_STANDARD 17)
-set(SOURCE_FILES main.cpp QbfFormula.cpp LiteralSorter.cpp ClauseSorter.cpp QuantifierSorter.cpp)
+set(SOURCE_FILES src/main.cpp src/QbfFormula.cpp src/LiteralSorter.cpp src/ClauseSorter.cpp src/QuantifierSorter.cpp)
 add_executable(qbfsort ${SOURCE_FILES})
+target_include_directories(qbfsort PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(qbfsort jsoncpp_lib)
 
 if(${WITH_TESTS})
@@ -114,5 +115,5 @@ if(${WITH_TESTS})
       "
   )
 
-  file(COPY ../test DESTINATION ${CMAKE_BINARY_DIR})
+  file(COPY test DESTINATION ${CMAKE_BINARY_DIR})
 endif()
