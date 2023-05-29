@@ -1,69 +1,57 @@
 #ifndef QBFSORT_LITERALSORTER_HPP
 #define QBFSORT_LITERALSORTER_HPP
 
-#include "QbfFormula.hpp"
+#include "Formula.hpp"
 
+#include <cstdint>
 #include <functional>
-#include <map>
-#include <memory>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace qbfsort {
 
 class LiteralSorter {
 public:
-  static std::shared_ptr<LiteralSorter>
-  create(const std::string &className, QbfFormula &formula,
-         const std::map<std::string, std::string> &args);
-  LiteralSorter(const QbfFormula &formula);
-  virtual ~LiteralSorter() = default;
+  static constexpr std::string_view metricNone{"none"};
+  static constexpr std::string_view metricBasic{"basic"};
+  static constexpr std::string_view metricFrequencyLiteral{"frequencyLiteral"};
+  static constexpr std::string_view metricFrequencyVariable{
+      "frequencyVariable"};
+  static constexpr std::string_view metricCountedBinariesLiteral{
+      "countedBinariesLiteral"};
+  static constexpr std::string_view metricCountedBinariesVariable{
+      "countedBinariesVariable"};
+  static constexpr std::string_view metricWeightedBinaries{"weightedBinaries"};
+  LiteralSorter(const Formula &formula,
+                const std::vector<std::string> &metrics);
   bool operator()(std::int32_t left, std::int32_t right) const;
 
-protected:
-  const QbfFormula &formula;
-
 private:
-  using factoryMethod = std::function<std::shared_ptr<LiteralSorter>(
-      QbfFormula &, const std::map<std::string, std::string> &)>;
-  static std::map<std::string, factoryMethod> factoryMap;
-  virtual bool sort(std::int32_t left, std::int32_t right) const = 0;
-};
-
-class BasicLiteralSorter : public LiteralSorter {
-public:
-  static constexpr std::string_view CLASS_NAME{"basic"};
-  BasicLiteralSorter(const QbfFormula &formula);
-
-private:
-  bool sort(std::int32_t left, std::int32_t right) const override;
-};
-
-class FrequencyLiteralSorter : public LiteralSorter {
-public:
-  static constexpr std::string_view CLASS_NAME{"frequency"};
-  FrequencyLiteralSorter(const QbfFormula &formula);
-
-private:
-  bool sort(std::int32_t left, std::int32_t right) const override;
-};
-
-class CountedBinariesLiteralSorter : public LiteralSorter {
-public:
-  static constexpr std::string_view CLASS_NAME{"countedBinaries"};
-  CountedBinariesLiteralSorter(const QbfFormula &formula);
-
-private:
-  bool sort(std::int32_t left, std::int32_t right) const override;
-  std::size_t getNewBinariesCount(std::int32_t literal) const;
-};
-
-class WeightedBinariesLiteralSorter : public LiteralSorter {
-public:
-  static constexpr std::string_view CLASS_NAME{"weightedBinaries"};
-  WeightedBinariesLiteralSorter(const QbfFormula &formula);
-
-private:
-  bool sort(std::int32_t left, std::int32_t right) const override;
+  using compareMethod =
+      std::function<std::int32_t(const Formula &, std::int32_t, std::int32_t)>;
+  std::vector<compareMethod> compareMethods{};
+  static compareMethod getCompareMethod(std::string_view metric);
+  static std::int32_t compareNone(const Formula &formula, std::int32_t left,
+                                  std::int32_t right);
+  static std::int32_t compareBasic(const Formula &formula, std::int32_t left,
+                                   std::int32_t right);
+  static std::int32_t compareFrequencyLiteral(const Formula &formula,
+                                              std::int32_t left,
+                                              std::int32_t right);
+  static std::int32_t compareFrequencyVariable(const Formula &formula,
+                                               std::int32_t left,
+                                               std::int32_t right);
+  static std::int32_t compareCountedBinariesLiteral(const Formula &formula,
+                                                    std::int32_t left,
+                                                    std::int32_t right);
+  static std::int32_t compareCountedBinariesVariable(const Formula &formula,
+                                                     std::int32_t left,
+                                                     std::int32_t right);
+  static std::int32_t compareWeightedBinaries(const Formula &formula,
+                                              std::int32_t left,
+                                              std::int32_t right);
+  const Formula formula;
 };
 
 } // namespace qbfsort
