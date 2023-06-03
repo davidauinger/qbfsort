@@ -159,42 +159,44 @@ void qbfsort::Formula::printStatistics(std::ostream &to) const {
 }
 
 void qbfsort::Formula::sortLiterals(
-    std::function<bool(std::int32_t, std::int32_t)> sorter) {
+    const std::function<bool(std::int32_t, std::int32_t)> &sorter) {
   for (auto &v : matrix) {
-    std::sort(v.begin(), v.end(), sorter);
+    std::sort(v.begin(), v.end(), std::cref(sorter));
   }
 }
 
 void qbfsort::Formula::stableSortLiterals(
-    std::function<bool(std::int32_t, std::int32_t)> sorter) {
+    const std::function<bool(std::int32_t, std::int32_t)> &sorter) {
   for (auto &v : matrix) {
-    std::stable_sort(v.begin(), v.end(), sorter);
+    std::stable_sort(v.begin(), v.end(), std::cref(sorter));
   }
 }
 
 void qbfsort::Formula::sortClauses(
-    std::function<bool(const std::vector<std::int32_t>&, const std::vector<std::int32_t>&)>
+    std::function<bool(const std::vector<std::int32_t> &,
+                       const std::vector<std::int32_t> &)>
         sorter) {
-  std::sort(matrix.begin(), matrix.end(), sorter);
+  std::sort(matrix.begin(), matrix.end(), std::cref(sorter));
 }
 
 void qbfsort::Formula::stableSortClauses(
-    std::function<bool(const std::vector<std::int32_t>&, const std::vector<std::int32_t>&)>
+    std::function<bool(const std::vector<std::int32_t> &,
+                       const std::vector<std::int32_t> &)>
         sorter) {
-  std::stable_sort(matrix.begin(), matrix.end(), sorter);
+  std::stable_sort(matrix.begin(), matrix.end(), std::cref(sorter));
 }
 
 void qbfsort::Formula::sortQuantifiers(
-    std::function<bool(std::int32_t, std::int32_t)> sorter) {
+    const std::function<bool(std::int32_t, std::int32_t)> &sorter) {
   for (auto &p : prefix) {
-    std::sort(p.second.begin(), p.second.end(), sorter);
+    std::sort(p.second.begin(), p.second.end(), std::cref(sorter));
   }
 }
 
 void qbfsort::Formula::stableSortQuantifiers(
-    std::function<bool(std::int32_t, std::int32_t)> sorter) {
+    const std::function<bool(std::int32_t, std::int32_t)> &sorter) {
   for (auto &p : prefix) {
-    std::stable_sort(p.second.begin(), p.second.end(), sorter);
+    std::stable_sort(p.second.begin(), p.second.end(), std::cref(sorter));
   }
 }
 
@@ -243,11 +245,7 @@ double qbfsort::Formula::getFrequencyClauseVariableMean(
 
 std::int32_t
 qbfsort::Formula::getCountedBinariesLiteral(std::int32_t literal) const {
-  if (binaryCountsPositive.empty() || binaryCountsNegative.empty()) {
-    precomputeBinaryCounts();
-  }
-  return literal > 0 ? binaryCountsPositive.at(literal)
-                     : binaryCountsNegative.at(-literal);
+  return getNewBinaryClauses(literal).size();
 }
 
 std::int32_t
@@ -288,10 +286,10 @@ double qbfsort::Formula::getCountedBinariesClauseVariableMean(
 
 double
 qbfsort::Formula::getWeightedBinariesWeight(std::int32_t variable) const {
-  if (binaryWeights.empty()) {
-    precomputeBinaryWeights();
+  if (weightedBinariesWeights.empty()) {
+    precomputeWeightedBinariesWeights();
   }
-  return binaryWeights.at(variable);
+  return weightedBinariesWeights.at(variable);
 }
 
 double qbfsort::Formula::getWeightedBinariesWeightClauseSum(
@@ -342,97 +340,149 @@ bool qbfsort::Formula::Quantifier::operator==(const Quantifier &other) const {
   return this->token == other.token;
 }
 
+std::vector<std::pair<std::int32_t, std::pair<std::int32_t, std::int32_t>>>
+qbfsort::Formula::getAllBinaryClausesFromAssignment(
+    const std::set<std::int32_t> &clause) {
+  std::vector<std::pair<std::int32_t, std::pair<std::int32_t, std::int32_t>>>
+      binaryClauses;
+  if (clause.size() != 3) {
+    return binaryClauses;
+  }
+  for (auto literal : clause) {
+    auto newBinaryClauseSet{clause};
+    newBinaryClauseSet.erase(literal);
+    binaryClauses.push_back({literal,
+                             {*std::min_element(newBinaryClauseSet.cbegin(),
+                                                newBinaryClauseSet.cend()),
+                              *std::max_element(newBinaryClauseSet.cbegin(),
+                                                newBinaryClauseSet.cend())}});
+  }
+  return binaryClauses;
+}
+
+double qbfsort::Formula::getPartialWeight(std::int32_t size) {
+  if (size < 2) {
+    return 0.0;
+  }
+  double partialWeight{5.0};
+  while (size > 2) {
+    partialWeight /= 5.0;
+    --size;
+  }
+  return partialWeight;
+}
+
+const std::set<std::pair<std::int32_t, std::int32_t>> &
+qbfsort::Formula::getBinaryClauses() const {
+  if (binaryClauses.empty()) {
+    precomputeBinaryClauses();
+  }
+  return binaryClauses;
+}
+
+const std::set<std::pair<std::int32_t, std::int32_t>> &
+qbfsort::Formula::getNewBinaryClauses(std::int32_t literal) const {
+  if (newBinaryClausesPositive.empty() || newBinaryClausesNegative.empty()) {
+    precomputeNewBinaryClauses();
+  }
+  return literal > 0 ? newBinaryClausesPositive.at(literal)
+                     : newBinaryClausesNegative.at(-literal);
+}
+
+double qbfsort::Formula::getBinaryWeight(std::int32_t literal) const {
+  double weight{0.0};
+  for (auto [literal1, literal2] : getNewBinaryClauses(literal)) {
+    weight += getLiteralWeight(-literal1);
+    weight += getLiteralWeight(-literal2);
+  }
+  return weight;
+}
+
+double qbfsort::Formula::getLiteralWeight(std::int32_t literal) const {
+  if (literalWeightsPositive.empty() || literalWeightsNegative.empty()) {
+    precomputeLiteralWeights();
+  }
+  return literal > 0 ? literalWeightsPositive[literal]
+                     : literalWeightsNegative[-literal];
+}
+
 void qbfsort::Formula::precomputeFrequencies() const {
-  frequenciesPositive.clear();
-  frequenciesPositive.push_back(0);
-  frequenciesNegative.clear();
-  frequenciesNegative.push_back(0);
-  for (std::int32_t a{1}; a <= numberOfAtoms; ++a) {
-    std::int32_t frequencyPositive{0};
-    std::int32_t frequencyNegative{0};
-    for (const std::vector<std::int32_t> &v : matrix) {
-      if (std::count(v.begin(), v.end(), a)) {
-        ++frequencyPositive;
-      }
-      if (std::count(v.begin(), v.end(), -a)) {
-        ++frequencyNegative;
+  frequenciesPositive = std::vector<std::int32_t>(numberOfAtoms + 1, 0);
+  frequenciesNegative = std::vector<std::int32_t>(numberOfAtoms + 1, 0);
+  for (const auto &clause : matrix) {
+    for (auto literal : clause) {
+      if (literal > 0) {
+        ++frequenciesPositive[literal];
+      } else {
+        ++frequenciesNegative[-literal];
       }
     }
-    frequenciesPositive.push_back(frequencyPositive);
-    frequenciesNegative.push_back(frequencyNegative);
   }
 }
 
-void qbfsort::Formula::precomputeBinaryCounts() const {
-  binaryCountsPositive.clear();
-  binaryCountsPositive.push_back(0);
-  binaryCountsNegative.clear();
-  binaryCountsNegative.push_back(0);
-  for (std::int32_t a{1}; a <= numberOfAtoms; ++a) {
-    binaryCountsPositive.push_back(getNewBinaryClausesByAssignment(a).size());
-    binaryCountsNegative.push_back(getNewBinaryClausesByAssignment(-a).size());
-  }
-}
-
-void qbfsort::Formula::precomputeBinaryWeights() const {
-  binaryWeights.clear();
-  binaryWeights.push_back(0);
-  for (std::int32_t a{1}; a <= numberOfAtoms; ++a) {
-    binaryWeights.push_back(getWeightedBinariesHeuristic(a) *
-                            getWeightedBinariesHeuristic(-a));
-  }
-}
-
-std::set<std::pair<std::int32_t, std::int32_t>>
-qbfsort::Formula::getNewBinaryClausesByAssignment(std::int32_t literal) const {
-  std::set<std::pair<std::int32_t, std::int32_t>> newBinaryClauses;
-  for (std::vector<std::int32_t> v : matrix) {
-    if (std::find(v.begin(), v.end(), -literal) == v.end()) {
-      continue;
+void qbfsort::Formula::precomputeBinaryClauses() const {
+  binaryClauses.clear();
+  for (const std::vector<std::int32_t> &clause : matrix) {
+    std::set<std::int32_t> clauseSet;
+    for (std::size_t i{0}; i < clause.size() && clauseSet.size() <= 2; ++i) {
+      clauseSet.insert(clause[i]);
     }
-    v.erase(std::remove(v.begin(), v.end(), -literal), v.end());
-    if (v.size() == 2) {
-      if (std::find(std::cbegin(matrix), std::end(matrix), v) !=
-          std::cend(matrix)) {
+    if (clauseSet.size() == 2) {
+      binaryClauses.insert(
+          {std::min(clause[0], clause[1]), std::max(clause[0], clause[1])});
+    }
+  }
+}
+
+void qbfsort::Formula::precomputeNewBinaryClauses() const {
+  newBinaryClausesPositive =
+      std::vector<std::set<std::pair<std::int32_t, std::int32_t>>>(
+          numberOfAtoms + 1);
+  newBinaryClausesNegative =
+      std::vector<std::set<std::pair<std::int32_t, std::int32_t>>>(
+          numberOfAtoms + 1);
+  for (const std::vector<std::int32_t> &clause : matrix) {
+    std::set<std::int32_t> clauseSet;
+    for (std::size_t i{0}; i < clause.size() && clauseSet.size() <= 3; ++i) {
+      clauseSet.insert(clause[i]);
+    }
+    for (const auto &[literal, newBinaryClause] :
+         getAllBinaryClausesFromAssignment(clauseSet)) {
+      if (getBinaryClauses().find(newBinaryClause) !=
+          getBinaryClauses().cend()) {
         continue;
       }
-      std::reverse(v.begin(), v.end());
-      if (std::find(std::cbegin(matrix), std::cend(matrix), v) !=
-          std::cend(matrix)) {
-        continue;
+      if (literal > 0) {
+        newBinaryClausesNegative[literal].insert(newBinaryClause);
+      } else {
+        newBinaryClausesPositive[-literal].insert(newBinaryClause);
       }
-      std::sort(v.begin(), v.end());
-      newBinaryClauses.emplace(v[0], v[1]);
     }
   }
-  return newBinaryClauses;
 }
 
-double
-qbfsort::Formula::getWeightedBinariesHeuristic(std::int32_t literal) const {
-  double weight{0.0};
-  std::set<std::pair<std::int32_t, std::int32_t>> newBinaryClauses{
-      getNewBinaryClausesByAssignment(literal)};
-  for (const auto &p : newBinaryClauses) {
-    weight += getWeightedBinariesLiteralWeight(-p.first);
-    weight += getWeightedBinariesLiteralWeight(-p.second);
+void qbfsort::Formula::precomputeWeightedBinariesWeights() const {
+  weightedBinariesWeights = std::vector<double>(numberOfAtoms + 1, 0);
+  for (std::int32_t atom{1}; atom <= numberOfAtoms; ++atom) {
+    weightedBinariesWeights[atom] =
+        getBinaryWeight(atom) * getBinaryWeight(-atom);
   }
-  return weight;
 }
 
-double
-qbfsort::Formula::getWeightedBinariesLiteralWeight(std::int32_t literal) const {
-  double weight{0.0};
-  for (const auto &c : matrix) {
-    if (c.size() > 1 && std::find(c.cbegin(), c.cend(), literal) != c.cend()) {
-      std::int32_t k{static_cast<std::int32_t>(c.size() - 2)};
-      double partialWeight{5.0};
-      while (k > 0) {
-        partialWeight /= 5.0;
-        --k;
+void qbfsort::Formula::precomputeLiteralWeights() const {
+  literalWeightsPositive = std::vector<double>(numberOfAtoms + 1, 0.0);
+  literalWeightsNegative = std::vector<double>(numberOfAtoms + 1, 0.0);
+  for (const auto &clause : matrix) {
+    std::set<std::int32_t> clauseSet;
+    for (auto literal : clause) {
+      clauseSet.insert(literal);
+    }
+    for (auto literal : clauseSet) {
+      if (literal > 0) {
+        literalWeightsPositive[literal] += getPartialWeight(clauseSet.size());
+      } else {
+        literalWeightsNegative[-literal] += getPartialWeight(clauseSet.size());
       }
-      weight += partialWeight;
     }
   }
-  return weight;
 }

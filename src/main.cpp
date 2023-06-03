@@ -1,6 +1,6 @@
 #include <qbfsort/ClauseSorter.hpp>
-#include <qbfsort/LiteralSorter.hpp>
 #include <qbfsort/Formula.hpp>
+#include <qbfsort/LiteralSorter.hpp>
 
 #include <boost/program_options/option.hpp>
 #include <boost/program_options/options_description.hpp>
@@ -58,27 +58,27 @@ int main(int argc, char **argv) {
     qbfsort::LiteralSorter ls{formula,
                               vm["literals"].as<std::vector<std::string>>()};
     if (vm.count("stable")) {
-      formula.sortLiterals(ls);
-    } else {
       formula.stableSortLiterals(ls);
+    } else {
+      formula.sortLiterals(ls);
     }
   }
   if (vm.count("clauses")) {
     qbfsort::ClauseSorter cs{formula,
                              vm["clauses"].as<std::vector<std::string>>()};
     if (vm.count("stable")) {
-      formula.sortClauses(cs);
-    } else {
       formula.stableSortClauses(cs);
+    } else {
+      formula.sortClauses(cs);
     }
   }
   if (vm.count("quantifiers")) {
-    qbfsort::LiteralSorter ls{
-        formula, vm["quantifiers"].as<std::vector<std::string>>()};
+    qbfsort::LiteralSorter ls{formula,
+                              vm["quantifiers"].as<std::vector<std::string>>()};
     if (vm.count("stable")) {
-      formula.sortQuantifiers(ls);
-    } else {
       formula.stableSortQuantifiers(ls);
+    } else {
+      formula.sortQuantifiers(ls);
     }
   }
   auto coutbuf{std::cout.rdbuf()};
