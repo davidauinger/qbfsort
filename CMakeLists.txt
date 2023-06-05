@@ -8,6 +8,7 @@ set(SOURCE_FILES src/main.cpp src/Formula.cpp src/LiteralSorter.cpp src/ClauseSo
 add_executable(qbfsort ${SOURCE_FILES})
 target_include_directories(qbfsort PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include ${Boost_INCLUDE_DIR})
 target_link_libraries(qbfsort jsoncpp_lib ${Boost_LIBRARIES})
+file(COPY qbfsortdir.sh DESTINATION ${CMAKE_BINARY_DIR})
 
 if(${WITH_TESTS})
   enable_testing()

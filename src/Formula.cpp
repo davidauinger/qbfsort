@@ -173,16 +173,14 @@ void qbfsort::Formula::stableSortLiterals(
 }
 
 void qbfsort::Formula::sortClauses(
-    std::function<bool(const std::vector<std::int32_t> &,
-                       const std::vector<std::int32_t> &)>
-        sorter) {
+    const std::function<bool(const std::vector<std::int32_t> &,
+                             const std::vector<std::int32_t> &)> &sorter) {
   std::sort(matrix.begin(), matrix.end(), std::cref(sorter));
 }
 
 void qbfsort::Formula::stableSortClauses(
-    std::function<bool(const std::vector<std::int32_t> &,
-                       const std::vector<std::int32_t> &)>
-        sorter) {
+    const std::function<bool(const std::vector<std::int32_t> &,
+                             const std::vector<std::int32_t> &)> &sorter) {
   std::stable_sort(matrix.begin(), matrix.end(), std::cref(sorter));
 }
 
@@ -462,7 +460,7 @@ void qbfsort::Formula::precomputeNewBinaryClauses() const {
 }
 
 void qbfsort::Formula::precomputeWeightedBinariesWeights() const {
-  weightedBinariesWeights = std::vector<double>(numberOfAtoms + 1, 0);
+  weightedBinariesWeights = std::vector<double>(numberOfAtoms + 1, 0.0);
   for (std::int32_t atom{1}; atom <= numberOfAtoms; ++atom) {
     weightedBinariesWeights[atom] =
         getBinaryWeight(atom) * getBinaryWeight(-atom);

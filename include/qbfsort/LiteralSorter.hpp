@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -23,15 +24,15 @@ public:
   static constexpr std::string_view metricCountedBinariesVariable{
       "countedBinariesVariable"};
   static constexpr std::string_view metricWeightedBinaries{"weightedBinaries"};
-  LiteralSorter(const Formula &formula,
-                const std::vector<std::string> &metrics);
+  LiteralSorter(const Formula &formula, const std::vector<std::string> &metrics,
+                bool isInverse = false);
   bool operator()(std::int32_t left, std::int32_t right) const;
 
 private:
   using compareMethod =
       std::function<std::int32_t(const Formula &, std::int32_t, std::int32_t)>;
+  static const std::map<std::string_view, compareMethod> methodsMap;
   std::vector<compareMethod> compareMethods{};
-  static compareMethod getCompareMethod(std::string_view metric);
   static std::int32_t compareNone(const Formula &formula, std::int32_t left,
                                   std::int32_t right);
   static std::int32_t compareBasic(const Formula &formula, std::int32_t left,
@@ -52,6 +53,7 @@ private:
                                               std::int32_t left,
                                               std::int32_t right);
   const Formula formula;
+  const bool isInverse;
 };
 
 } // namespace qbfsort
