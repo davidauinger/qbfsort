@@ -1,48 +1,39 @@
-#include <qbfsort/LiteralSorter.hpp>
+#include <qbfsort/QuantifierSorter.hpp>
 
-qbfsort::LiteralSorter::LiteralSorter(const Formula &formula,
-                                      const std::string &metric, bool isInverse)
-    : Sorter<std::int32_t>(formula, methodsMap.at(metricsMap.at(metric)),
-                           isInverse) {}
+qbfsort::QuantifierSorter::QuantifierSorter(const Formula &formula,
+                                            const std::string &metric,
+                                            bool isInverse)
+    : Sorter(formula, methodsMap.at(metricsMap.at(metric)), isInverse) {}
 
 const std::map<std::string_view, std::string_view> &
-qbfsort::LiteralSorter::getMetricsMap() {
+qbfsort::QuantifierSorter::getMetricsMap() {
   return metricsMap;
 }
-
 const std::map<std::string_view, std::string_view>
-    qbfsort::LiteralSorter::metricsMap{
+    qbfsort::QuantifierSorter::metricsMap{
         {qbfsort::Sorter<std::int32_t>::metricNone,
          qbfsort::Sorter<std::int32_t>::metricNone},
         {qbfsort::Sorter<std::int32_t>::metricBasic,
          qbfsort::Sorter<std::int32_t>::metricBasic},
         {qbfsort::Sorter<std::int32_t>::metricFrequency,
          qbfsort::Sorter<std::int32_t>::metricFrequencyVariable},
-        {qbfsort::Sorter<std::int32_t>::metricFrequencyLiteral,
-         qbfsort::Sorter<std::int32_t>::metricFrequencyLiteral},
         {qbfsort::Sorter<std::int32_t>::metricFrequencyVariable,
          qbfsort::Sorter<std::int32_t>::metricFrequencyVariable},
         {qbfsort::Sorter<std::int32_t>::metricCountedBinaries,
          qbfsort::Sorter<std::int32_t>::metricCountedBinariesVariable},
-        {qbfsort::Sorter<std::int32_t>::metricCountedBinariesLiteral,
-         qbfsort::Sorter<std::int32_t>::metricCountedBinariesLiteral},
         {qbfsort::Sorter<std::int32_t>::metricCountedBinariesVariable,
          qbfsort::Sorter<std::int32_t>::metricCountedBinariesVariable},
         {qbfsort::Sorter<std::int32_t>::metricWeightedBinaries,
          qbfsort::Sorter<std::int32_t>::metricWeightedBinaries}};
 
-const std::map<std::string_view, qbfsort::LiteralSorter::compareMethod>
-    qbfsort::LiteralSorter::methodsMap{
+const std::map<std::string_view, qbfsort::QuantifierSorter::compareMethod>
+    qbfsort::QuantifierSorter::methodsMap{
         {qbfsort::Sorter<std::int32_t>::metricNone,
          qbfsort::Sorter<std::int32_t>::compareNone},
         {qbfsort::Sorter<std::int32_t>::metricBasic,
          qbfsort::Sorter<std::int32_t>::compareBasic},
-        {qbfsort::Sorter<std::int32_t>::metricFrequencyLiteral,
-         qbfsort::Sorter<std::int32_t>::compareFrequencyLiteral},
         {qbfsort::Sorter<std::int32_t>::metricFrequencyVariable,
          qbfsort::Sorter<std::int32_t>::compareFrequencyVariable},
-        {qbfsort::Sorter<std::int32_t>::metricCountedBinariesLiteral,
-         qbfsort::Sorter<std::int32_t>::compareCountedBinariesLiteral},
         {qbfsort::Sorter<std::int32_t>::metricCountedBinariesVariable,
          qbfsort::Sorter<std::int32_t>::compareCountedBinariesVariable},
         {qbfsort::Sorter<std::int32_t>::metricWeightedBinaries,

@@ -25,6 +25,14 @@ The tests can be executed from the build directory:
 ctest --output-on-failure
 ```
 
+# Dependencies
+
+The project depends on Boost.Program_options and JsonCpp. The dependency on JsonCpp can be removed by configuring with `WITH_JSONCPP=OFF`:
+```
+cmake -DCMAKE_BUILD_TYPE=Release -DWITH_JSONCPP=OFF ..
+```
+This will also remove the option to print the statistics.
+
 # Usage
 
 Both the input QBF and the output QBF are in the [QDIMACS standard](https://www.qbflib.org/qdimacs.html). By default, the program reads the input QBF from stdin and writes the output QBF to stdout. Of course, these can be redirected to files, so a typical call might look like:
@@ -32,12 +40,36 @@ Both the input QBF and the output QBF are in the [QDIMACS standard](https://www.
 ./qbfsort < input > output
 ```
 
-The program supports three kinds of sorting: literals, clauses and quantifiers. For each sorting the metric can be specified as key-value pair on the command line (`sortLiterals=<metric>`, `sortClauses=<metric>`, `sortQuantifiers=<metric>`). These metrics can be set for each kind of sorting separately. For example, to take the QBF from `example.cnf`, sort the literals by the number of newly created binary clauses, do not sort the clauses, sort the quantifiers by the canonical order and write the resulting QBF to `output.cnf`, the command may look like:
+The program supports three kinds of sortings: literals, clauses and quantifiers. For each sorting the metric can be chosen on the command line (`--literals <metric>`, `--clauses <metric>`, `--quantifiers <metric>`). These metrics can be set for each kind of sorting separately. For example, to take the QBF from `example.qdimacs`, sort the literals by the number of newly created binary clauses, do not sort the clauses, sort the quantifiers by the canonical order and write the resulting QBF to `output.qdimacs`, the command may look like:
 ```
-./qbfsort sortLiterals=countedBinaries  sortQuantifiers=basic < example.cnf > output.cnf
+./qbfsort --literals countedBinaries  --quantifiers basic < example.qdimacs > output.qdimacs
 ```
 
+# Command line options
+
+The complete list of the allowed command line options (with their short forms) and arguments is printed by invoking the program with the `--help` option. Following is a description of common usages of the options.
+
+## Input and output
+
+Instead of reading from stdin and writing to stdout, file names can also be specified with the `--input` and `--output` options, respectively.
+
+## Metrics
+
+Metrics can be chosen on the command line with the `--literals`, `--clauses` and `--quantifiers` options. As a convenience, the option `--metric` can be used to apply the same metric to all kinds of sortings. A list of available metrics can be obtained by invoking the program with the `--help` option.
+
+## Modifying sorting
+
+All the metrics can be inverted (*e.g.* from descending to ascending order) with the `--inverse` option. It is also possible to invert only specific kinds with `--literalsinverse`, `--clausesinverse` or `--quantifiersinverse`.
+
+The used sorting algorithm might not be stable by default. That means the order of equal elements might be exchanged during sorting. If a stable sorting algorithm is desired, the option `--stable` should be set. This algorithm might be less efficient in time and space than the not stable sorting algorithm.
+
+The values calculated by the metrics can be printed to a JSON file using the `--statistics` option. This option is only available if the project was compiled with JsonCpp by setting `WITH_JSONCPP=ON` (this is the default) during configuration.
+
 # Sorting metrics
+
+## none
+
+This metric does not sort at all but all elements are equal. This is mainly available for testing purposes.
 
 ## basic
 
