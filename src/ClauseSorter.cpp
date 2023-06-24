@@ -15,6 +15,8 @@ const std::map<std::string_view, std::string_view>
          qbfsort::Sorter<std::vector<std::int32_t>>::metricNone},
         {qbfsort::Sorter<std::vector<std::int32_t>>::metricBasic,
          qbfsort::Sorter<std::vector<std::int32_t>>::metricBasic},
+        {qbfsort::Sorter<std::vector<std::int32_t>>::metricRandom,
+         qbfsort::Sorter<std::vector<std::int32_t>>::metricRandom},
         {qbfsort::Sorter<std::vector<std::int32_t>>::metricFrequency,
          qbfsort::Sorter<
              std::vector<std::int32_t>>::metricFrequencyVariableMeans},
@@ -83,6 +85,8 @@ const std::map<std::string_view, qbfsort::ClauseSorter::compareMethod>
          qbfsort::Sorter<std::vector<std::int32_t>>::compareNone},
         {qbfsort::Sorter<std::vector<std::int32_t>>::metricBasic,
          qbfsort::Sorter<std::vector<std::int32_t>>::compareBasic},
+        {qbfsort::Sorter<std::vector<std::int32_t>>::metricRandom,
+         qbfsort::Sorter<std::vector<std::int32_t>>::compareRandom},
         {qbfsort::Sorter<std::vector<std::int32_t>>::metricFrequencyLiteralSums,
          qbfsort::Sorter<
              std::vector<std::int32_t>>::compareFrequencyLiteralSums},

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# usage: qbfsortdir.sh [-j parallelJobs|-n] inputFile outputFile [options]
+# usage: qbfsortdir.sh [-j parallelJobs|-n] inputDir outputDir [options]
 #
 parallelJobs=1
 while getopts "j:n" option
@@ -28,7 +28,7 @@ for f in $(ls "${inputDir}")
 do
   read -u 3 -n 1 x
   (
-    ./qbfsort --input "${inputDir}"/"$f" --output "${outputDir}"/$(basename "$f") $@
+    qbfsort --input "${inputDir}"/"$f" --output "${outputDir}"/$(basename "$f") $@
     printf "." >&3
   )&
 done

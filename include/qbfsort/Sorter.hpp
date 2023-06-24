@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <random>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -16,6 +17,7 @@ template <typename T> class Sorter {
 public:
   static constexpr std::string_view metricNone{"none"};
   static constexpr std::string_view metricBasic{"basic"};
+  static constexpr std::string_view metricRandom{"random"};
   static constexpr std::string_view metricFrequency{"frequency"};
   static constexpr std::string_view metricFrequencyLiteral{"frequencyLiteral"};
   static constexpr std::string_view metricFrequencyVariable{
@@ -56,6 +58,8 @@ protected:
                                   const T &right);
   static std::int32_t compareBasic(const Formula &formula, const T &left,
                                    const T &right);
+  static std::int32_t compareRandom(const Formula &formula, const T &left,
+                                    const T &right);
   static std::int32_t compareFrequencyLiteral(const Formula &formula,
                                               std::int32_t left,
                                               std::int32_t right);
@@ -113,6 +117,7 @@ protected:
                                const std::vector<std::int32_t> &right);
 
 private:
+  static std::mt19937 generator;
   const Formula formula;
   const compareMethod compare;
   const bool isInverse;

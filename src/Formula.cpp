@@ -77,16 +77,16 @@ void qbfsort::Formula::toStream(const Formula &formula, std::ostream &to) {
   }
   to << std::string(PROBLEM_LINE_P) << " " << std::string(PROBLEM_LINE_CNF)
      << " " << formula.numberOfAtoms << " " << formula.matrix.size() << "\n";
-  for (const auto &p : formula.prefix) {
-    to << Quantifier::to_string(p.first);
-    for (auto a : p.second) {
+  for (const auto &[quantifier, block] : formula.prefix) {
+    to << Quantifier::to_string(quantifier);
+    for (auto a : block) {
       to << " " << std::to_string(a);
     }
     to << " 0\n";
   }
-  for (const auto &v : formula.matrix) {
-    for (auto l : v) {
-      to << std::to_string(l) << " ";
+  for (const auto &clause : formula.matrix) {
+    for (auto literal : clause) {
+      to << std::to_string(literal) << " ";
     }
     to << "0\n";
   }
@@ -136,27 +136,28 @@ void qbfsort::Formula::printStatistics(std::ostream &to) const {
   root["CountedBinaries"]["ClauseLiteralMeans"].resize(0);
   root["CountedBinaries"]["ClauseVariableSums"].resize(0);
   root["CountedBinaries"]["ClauseVariableMeans"].resize(0);
-  for (const std::vector<std::int32_t> &c : matrix) {
+  for (const auto &clause : matrix) {
     root["CountedBinaries"]["ClauseLiteralSums"].append(
-        getCountedBinariesClauseLiteralSum(c));
+        getCountedBinariesClauseLiteralSum(clause));
     root["CountedBinaries"]["ClauseLiteralMeans"].append(
-        getCountedBinariesClauseLiteralMean(c));
+        getCountedBinariesClauseLiteralMean(clause));
     root["CountedBinaries"]["ClauseVariableSums"].append(
-        getCountedBinariesClauseVariableSum(c));
+        getCountedBinariesClauseVariableSum(clause));
     root["CountedBinaries"]["ClauseVariableMeans"].append(
-        getCountedBinariesClauseVariableMean(c));
+        getCountedBinariesClauseVariableMean(clause));
   }
   root["WeightedBinaries"]["Variables"].resize(0);
-  for (std::size_t a{1}; a <= numberOfAtoms; ++a) {
-    root["WeightedBinaries"]["Variables"].append(getWeightedBinariesWeight(a));
+  for (std::size_t atom{1}; atom <= numberOfAtoms; ++atom) {
+    root["WeightedBinaries"]["Variables"].append(
+        getWeightedBinariesWeight(atom));
   }
   root["WeightedBinaries"]["ClauseVariableSums"].resize(0);
   root["WeightedBinaries"]["ClauseVariableMeans"].resize(0);
-  for (const std::vector<std::int32_t> &c : matrix) {
+  for (const auto &clause : matrix) {
     root["WeightedBinaries"]["ClauseVariableSums"].append(
-        getWeightedBinariesWeightClauseSum(c));
+        getWeightedBinariesWeightClauseSum(clause));
     root["WeightedBinaries"]["ClauseVariableMeans"].append(
-        getWeightedBinariesWeightClauseMean(c));
+        getWeightedBinariesWeightClauseMean(clause));
   }
   writer->write(root, &to);
 }
@@ -164,15 +165,15 @@ void qbfsort::Formula::printStatistics(std::ostream &to) const {
 
 void qbfsort::Formula::sortLiterals(
     const std::function<bool(std::int32_t, std::int32_t)> &sorter) {
-  for (auto &v : matrix) {
-    std::sort(v.begin(), v.end(), std::cref(sorter));
+  for (auto &clause : matrix) {
+    std::sort(clause.begin(), clause.end(), std::cref(sorter));
   }
 }
 
 void qbfsort::Formula::stableSortLiterals(
     const std::function<bool(std::int32_t, std::int32_t)> &sorter) {
-  for (auto &v : matrix) {
-    std::stable_sort(v.begin(), v.end(), std::cref(sorter));
+  for (auto &clause : matrix) {
+    std::stable_sort(clause.begin(), clause.end(), std::cref(sorter));
   }
 }
 
@@ -190,15 +191,15 @@ void qbfsort::Formula::stableSortClauses(
 
 void qbfsort::Formula::sortQuantifiers(
     const std::function<bool(std::int32_t, std::int32_t)> &sorter) {
-  for (auto &p : prefix) {
-    std::sort(p.second.begin(), p.second.end(), std::cref(sorter));
+  for (auto &[quantifier, block] : prefix) {
+    std::sort(block.begin(), block.end(), std::cref(sorter));
   }
 }
 
 void qbfsort::Formula::stableSortQuantifiers(
     const std::function<bool(std::int32_t, std::int32_t)> &sorter) {
-  for (auto &p : prefix) {
-    std::stable_sort(p.second.begin(), p.second.end(), std::cref(sorter));
+  for (auto &[quantifier, block] : prefix) {
+    std::stable_sort(block.begin(), block.end(), std::cref(sorter));
   }
 }
 
@@ -218,8 +219,8 @@ qbfsort::Formula::getFrequencyVariable(std::int32_t variable) const {
 std::int32_t qbfsort::Formula::getFrequencyClauseLiteralSum(
     const std::vector<std::int32_t> &clause) const {
   std::int32_t literalSum{0};
-  for (std::int32_t l : clause) {
-    literalSum += getFrequencyLiteral(l);
+  for (auto literal : clause) {
+    literalSum += getFrequencyLiteral(literal);
   }
   return literalSum;
 }
@@ -233,8 +234,8 @@ double qbfsort::Formula::getFrequencyClauseLiteralMean(
 std::int32_t qbfsort::Formula::getFrequencyClauseVariableSum(
     const std::vector<std::int32_t> &clause) const {
   std::int32_t variableSum{0};
-  for (std::int32_t l : clause) {
-    variableSum += getFrequencyVariable(std::abs(l));
+  for (auto literal : clause) {
+    variableSum += getFrequencyVariable(std::abs(literal));
   }
   return variableSum;
 }
@@ -259,8 +260,8 @@ qbfsort::Formula::getCountedBinariesVariable(std::int32_t variable) const {
 std::int32_t qbfsort::Formula::getCountedBinariesClauseLiteralSum(
     const std::vector<std::int32_t> &clause) const {
   std::int32_t literalSum{0};
-  for (std::int32_t l : clause) {
-    literalSum += getCountedBinariesLiteral(l);
+  for (auto literal : clause) {
+    literalSum += getCountedBinariesLiteral(literal);
   }
   return literalSum;
 }
@@ -274,8 +275,8 @@ double qbfsort::Formula::getCountedBinariesClauseLiteralMean(
 std::int32_t qbfsort::Formula::getCountedBinariesClauseVariableSum(
     const std::vector<std::int32_t> &clause) const {
   std::int32_t variableSum{0};
-  for (std::int32_t l : clause) {
-    variableSum += getCountedBinariesVariable(std::abs(l));
+  for (auto literal : clause) {
+    variableSum += getCountedBinariesVariable(std::abs(literal));
   }
   return variableSum;
 }
@@ -297,8 +298,8 @@ qbfsort::Formula::getWeightedBinariesWeight(std::int32_t variable) const {
 double qbfsort::Formula::getWeightedBinariesWeightClauseSum(
     const std::vector<std::int32_t> &clause) const {
   double weight{0.0};
-  for (auto l : clause) {
-    weight += getWeightedBinariesWeight(std::abs(l));
+  for (auto literal : clause) {
+    weight += getWeightedBinariesWeight(std::abs(literal));
   }
   return weight;
 }
@@ -307,6 +308,13 @@ double qbfsort::Formula::getWeightedBinariesWeightClauseMean(
     const std::vector<std::int32_t> &clause) const {
   return getWeightedBinariesWeightClauseSum(clause) /
          static_cast<double>(clause.size());
+}
+
+std::size_t qbfsort::Formula::getHashcode() const {
+  if (hashcode.empty()) {
+    precomputeHashcode();
+  }
+  return hashcode.at(0);
 }
 
 const qbfsort::Formula::Quantifier qbfsort::Formula::Quantifier::exists{
@@ -424,7 +432,7 @@ void qbfsort::Formula::precomputeFrequencies() const {
 
 void qbfsort::Formula::precomputeBinaryClauses() const {
   binaryClauses.clear();
-  for (const std::vector<std::int32_t> &clause : matrix) {
+  for (const auto &clause : matrix) {
     std::set<std::int32_t> clauseSet;
     for (std::size_t i{0}; i < clause.size() && clauseSet.size() <= 2; ++i) {
       clauseSet.insert(clause[i]);
@@ -487,4 +495,23 @@ void qbfsort::Formula::precomputeLiteralWeights() const {
       }
     }
   }
+}
+
+void qbfsort::Formula::precomputeHashcode() const {
+  hashcode = std::vector<std::size_t>(1);
+  std::size_t prefixHash{prefix.size()};
+  for (const auto &[quantifier, block] : prefix) {
+    for (auto variable : block) {
+      prefixHash ^= quantifier == Quantifier::exists ? variable : ~variable;
+      prefixHash = (prefixHash << 16) | (prefixHash >> 16);
+    }
+  }
+  std::size_t matrixHash{matrix.size()};
+  for (const auto &clause : matrix) {
+    for (auto literal : clause) {
+      matrixHash ^= literal;
+      matrixHash = (matrixHash << 16) | (matrixHash >> 16);
+    }
+  }
+  hashcode[0] = prefixHash ^ matrixHash;
 }

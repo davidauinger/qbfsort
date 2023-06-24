@@ -153,6 +153,37 @@ if(${WITH_TESTS})
       "
   )
 
+  add_test(NAME literals_random.empty
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/empty.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/literals_random_empty.qdimacs --stable --literals random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/literals_random_empty.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/literals_random_empty.qdimacs \
+      "
+  )
+  add_test(NAME literals_random.comment
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/comment.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/literals_random_comment.qdimacs --stable --literals random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/literals_random_comment.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/literals_random_comment.qdimacs \
+      "
+  )
+  add_test(NAME literals_random.short
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/short.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/literals_random_short.qdimacs --stable --literals random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/literals_random_short.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/literals_random_short.qdimacs \
+      "
+  )
+  add_test(NAME literals_random.extended
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/extended.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/literals_random_extended.qdimacs --stable --literals random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/literals_random_extended.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/literals_random_extended.qdimacs \
+      "
+  )
+  add_test(NAME literals_random.binaries
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/binaries.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/literals_random_binaries.qdimacs --stable --literals random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/literals_random_binaries.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/literals_random_binaries.qdimacs \
+      "
+  )
+
   add_test(NAME literals_frequencyLiteral.empty
       COMMAND bash -c " \
       qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/empty.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/literals_frequencyLiteral_empty.qdimacs --stable --literals frequencyLiteral; \
@@ -370,6 +401,37 @@ if(${WITH_TESTS})
       "
   )
 
+  add_test(NAME quantifiers_random.empty
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/empty.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/quantifiers_random_empty.qdimacs --stable --quantifiers random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/quantifiers_random_empty.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/quantifiers_random_empty.qdimacs \
+      "
+  )
+  add_test(NAME quantifiers_random.comment
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/comment.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/quantifiers_random_comment.qdimacs --stable --quantifiers random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/quantifiers_random_comment.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/quantifiers_random_comment.qdimacs \
+      "
+  )
+  add_test(NAME quantifiers_random.short
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/short.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/quantifiers_random_short.qdimacs --stable --quantifiers random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/quantifiers_random_short.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/quantifiers_random_short.qdimacs \
+      "
+  )
+  add_test(NAME quantifiers_random.extended
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/extended.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/quantifiers_random_extended.qdimacs --stable --quantifiers random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/quantifiers_random_extended.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/quantifiers_random_extended.qdimacs \
+      "
+  )
+  add_test(NAME quantifiers_random.binaries
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/binaries.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/quantifiers_random_binaries.qdimacs --stable --quantifiers random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/quantifiers_random_binaries.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/quantifiers_random_binaries.qdimacs \
+      "
+  )
+
   add_test(NAME quantifiers_frequencyVariable.empty
       COMMAND bash -c " \
       qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/empty.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/quantifiers_frequencyVariable_empty.qdimacs --stable --quantifiers frequencyVariable; \
@@ -522,6 +584,37 @@ if(${WITH_TESTS})
       COMMAND bash -c " \
       qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/binaries.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_basic_binaries.qdimacs --stable --clauses basic; \
       diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_basic_binaries.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/clauses_basic_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME clauses_random.empty
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/empty.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_random_empty.qdimacs --stable --clauses random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_random_empty.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/clauses_random_empty.qdimacs \
+      "
+  )
+  add_test(NAME clauses_random.comment
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/comment.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_random_comment.qdimacs --stable --clauses random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_random_comment.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/clauses_random_comment.qdimacs \
+      "
+  )
+  add_test(NAME clauses_random.short
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/short.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_random_short.qdimacs --stable --clauses random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_random_short.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/clauses_random_short.qdimacs \
+      "
+  )
+  add_test(NAME clauses_random.extended
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/extended.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_random_extended.qdimacs --stable --clauses random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_random_extended.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/clauses_random_extended.qdimacs \
+      "
+  )
+  add_test(NAME clauses_random.binaries
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/binaries.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_random_binaries.qdimacs --stable --clauses random; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/clauses_random_binaries.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/clauses_random_binaries.qdimacs \
       "
   )
 
@@ -956,6 +1049,68 @@ if(${WITH_TESTS})
       COMMAND bash -c " \
       qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/binaries.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_basicinverse_binaries.qdimacs --metric basic --stable --inverse; \
       diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_basicinverse_binaries.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/metric_basicinverse_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_random.empty
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/empty.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_random_empty.qdimacs --metric random --stable; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_random_empty.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/metric_random_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_random.comment
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/comment.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_random_comment.qdimacs --metric random --stable; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_random_comment.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/metric_random_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_random.short
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/short.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_random_short.qdimacs --metric random --stable; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_random_short.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/metric_random_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_random.extended
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/extended.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_random_extended.qdimacs --metric random --stable; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_random_extended.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/metric_random_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_random.binaries
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/binaries.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_random_binaries.qdimacs --metric random --stable; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_random_binaries.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/metric_random_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_randominverse.empty
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/empty.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_randominverse_empty.qdimacs --metric random --stable --inverse; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_randominverse_empty.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/metric_randominverse_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_randominverse.comment
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/comment.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_randominverse_comment.qdimacs --metric random --stable --inverse; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_randominverse_comment.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/metric_randominverse_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_randominverse.short
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/short.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_randominverse_short.qdimacs --metric random --stable --inverse; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_randominverse_short.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/metric_randominverse_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_randominverse.extended
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/extended.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_randominverse_extended.qdimacs --metric random --stable --inverse; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_randominverse_extended.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/metric_randominverse_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_randominverse.binaries
+      COMMAND bash -c " \
+      qbfsort --input ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/input/binaries.qdimacs --output ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_randominverse_binaries.qdimacs --metric random --stable --inverse; \
+      diff ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/output/metric_randominverse_binaries.qdimacs ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/qbfsort/test/expected/metric_randominverse_binaries.qdimacs \
       "
   )
 
