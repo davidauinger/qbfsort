@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <functional>
 #include <map>
-#include <random>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -117,7 +116,6 @@ protected:
                                const std::vector<std::int32_t> &right);
 
 private:
-  static std::mt19937 generator;
   const Formula formula;
   const compareMethod compare;
   const bool isInverse;
