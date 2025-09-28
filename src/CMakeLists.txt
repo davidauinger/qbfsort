@@ -64,7 +64,7 @@ if(${WITH_TESTS})
 
   add_test(NAME countedBinaries
       COMMAND bash -c " \
-      ./qbfsort printStatistics=test/countedBinaries < test/input/countedBinaries.cnf > test/countedBinaries.cnf; \
+      ./qbfsort printStatistics=test/countedBinaries.json < test/input/countedBinaries.cnf > test/countedBinaries.cnf; \
       diff test/countedBinaries.cnf test/expected/countedBinaries.cnf &&  \
       diff <(jq -S . test/countedBinaries.json) <(jq -S . test/expected/countedBinaries.json) \
       "
