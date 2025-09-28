@@ -1,13 +1,23 @@
 project(qbfsort)
 cmake_minimum_required(VERSION 3.18)
-find_package(jsoncpp REQUIRED)
-find_package(Boost 1.74 COMPONENTS program_options REQUIRED)
+option(WITH_JSONCPP "compile with jsoncpp to support printing of statistics" ON)
 option(WITH_TESTS "include tests in build directory")
+find_package(Boost 1.74 COMPONENTS program_options REQUIRED)
+if(${WITH_JSONCPP})
+  find_package(jsoncpp REQUIRED)
+endif()
 set(CMAKE_CXX_STANDARD 17)
-set(SOURCE_FILES src/main.cpp src/Formula.cpp src/LiteralSorter.cpp src/ClauseSorter.cpp)
+set(SOURCE_FILES src/main.cpp src/Formula.cpp src/Sorter.cpp src/LiteralSorter.cpp src/ClauseSorter.cpp src/QuantifierSorter.cpp)
 add_executable(qbfsort ${SOURCE_FILES})
 target_include_directories(qbfsort PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include ${Boost_INCLUDE_DIR})
-target_link_libraries(qbfsort jsoncpp_lib ${Boost_LIBRARIES})
+if(${WITH_JSONCPP})
+  target_compile_definitions(qbfsort PUBLIC WITH_JSONCPP)
+endif()
+target_link_libraries(qbfsort ${Boost_LIBRARIES})
+if(${WITH_JSONCPP})
+  target_link_libraries(qbfsort jsoncpp_lib)
+  target_compile_definitions(qbfsort PUBLIC WITH_JSONCPP)
+endif()
 file(COPY qbfsortdir.sh DESTINATION ${CMAKE_BINARY_DIR})
 
 if(${WITH_TESTS})
@@ -46,36 +56,38 @@ if(${WITH_TESTS})
       "
   )
 
-  add_test(NAME statistics.empty
-      COMMAND bash -c " \
-      ./qbfsort --input test/input/empty.qdimacs --output /dev/null --statistics test/output/empty.json; \
-      diff <(jq -S . test/output/empty.json) <(jq -S . test/expected/empty.json) \
-      "
-  )
-  add_test(NAME statistics.comment
-      COMMAND bash -c " \
-      ./qbfsort --input test/input/comment.qdimacs --output /dev/null --statistics test/output/comment.json; \
-      diff <(jq -S . test/output/comment.json) <(jq -S . test/expected/comment.json) \
-      "
-  )
-  add_test(NAME statistics.short
-      COMMAND bash -c " \
-      ./qbfsort --input test/input/short.qdimacs --output /dev/null --statistics test/output/short.json; \
-      diff <(jq -S . test/output/short.json) <(jq -S . test/expected/short.json) \
-      "
-  )
-  add_test(NAME statistics.extended
-      COMMAND bash -c " \
-      ./qbfsort --input test/input/extended.qdimacs --output /dev/null --statistics test/output/extended.json; \
-      diff <(jq -S . test/output/extended.json) <(jq -S . test/expected/extended.json) \
-      "
-  )
-  add_test(NAME statistics.binaries
-      COMMAND bash -c " \
-      ./qbfsort --input test/input/binaries.qdimacs --output /dev/null --statistics test/output/binaries.json; \
-      diff <(jq -S . test/output/binaries.json) <(jq -S . test/expected/binaries.json) \
-      "
-  )
+  if(${WITH_JSONCPP})
+    add_test(NAME statistics.empty
+        COMMAND bash -c " \
+        ./qbfsort --input test/input/empty.qdimacs --output /dev/null --statistics test/output/empty.json; \
+        diff <(jq -S . test/output/empty.json) <(jq -S . test/expected/empty.json) \
+        "
+    )
+    add_test(NAME statistics.comment
+        COMMAND bash -c " \
+        ./qbfsort --input test/input/comment.qdimacs --output /dev/null --statistics test/output/comment.json; \
+        diff <(jq -S . test/output/comment.json) <(jq -S . test/expected/comment.json) \
+        "
+    )
+    add_test(NAME statistics.short
+        COMMAND bash -c " \
+        ./qbfsort --input test/input/short.qdimacs --output /dev/null --statistics test/output/short.json; \
+        diff <(jq -S . test/output/short.json) <(jq -S . test/expected/short.json) \
+        "
+    )
+    add_test(NAME statistics.extended
+        COMMAND bash -c " \
+        ./qbfsort --input test/input/extended.qdimacs --output /dev/null --statistics test/output/extended.json; \
+        diff <(jq -S . test/output/extended.json) <(jq -S . test/expected/extended.json) \
+        "
+    )
+    add_test(NAME statistics.binaries
+        COMMAND bash -c " \
+        ./qbfsort --input test/input/binaries.qdimacs --output /dev/null --statistics test/output/binaries.json; \
+        diff <(jq -S . test/output/binaries.json) <(jq -S . test/expected/binaries.json) \
+        "
+    )
+  endif()
 
   add_test(NAME literals_none.empty
       COMMAND bash -c " \
@@ -818,6 +830,316 @@ if(${WITH_TESTS})
       COMMAND bash -c " \
       ./qbfsort --input test/input/binaries.qdimacs --output test/output/clauses_weightedBinariesMeans_binaries.qdimacs --stable --clauses weightedBinariesMeans; \
       diff test/output/clauses_weightedBinariesMeans_binaries.qdimacs test/expected/clauses_weightedBinariesMeans_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_none.empty
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/empty.qdimacs --output test/output/metric_none_empty.qdimacs --metric none --stable; \
+      diff test/output/metric_none_empty.qdimacs test/expected/metric_none_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_none.comment
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/comment.qdimacs --output test/output/metric_none_comment.qdimacs --metric none --stable; \
+      diff test/output/metric_none_comment.qdimacs test/expected/metric_none_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_none.short
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/short.qdimacs --output test/output/metric_none_short.qdimacs --metric none --stable; \
+      diff test/output/metric_none_short.qdimacs test/expected/metric_none_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_none.extended
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/extended.qdimacs --output test/output/metric_none_extended.qdimacs --metric none --stable; \
+      diff test/output/metric_none_extended.qdimacs test/expected/metric_none_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_none.binaries
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/binaries.qdimacs --output test/output/metric_none_binaries.qdimacs --metric none --stable; \
+      diff test/output/metric_none_binaries.qdimacs test/expected/metric_none_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_noneinverse.empty
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/empty.qdimacs --output test/output/metric_noneinverse_empty.qdimacs --metric none --stable --inverse; \
+      diff test/output/metric_noneinverse_empty.qdimacs test/expected/metric_noneinverse_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_noneinverse.comment
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/comment.qdimacs --output test/output/metric_noneinverse_comment.qdimacs --metric none --stable --inverse; \
+      diff test/output/metric_noneinverse_comment.qdimacs test/expected/metric_noneinverse_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_noneinverse.short
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/short.qdimacs --output test/output/metric_noneinverse_short.qdimacs --metric none --stable --inverse; \
+      diff test/output/metric_noneinverse_short.qdimacs test/expected/metric_noneinverse_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_noneinverse.extended
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/extended.qdimacs --output test/output/metric_noneinverse_extended.qdimacs --metric none --stable --inverse; \
+      diff test/output/metric_noneinverse_extended.qdimacs test/expected/metric_noneinverse_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_noneinverse.binaries
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/binaries.qdimacs --output test/output/metric_noneinverse_binaries.qdimacs --metric none --stable --inverse; \
+      diff test/output/metric_noneinverse_binaries.qdimacs test/expected/metric_noneinverse_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_basic.empty
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/empty.qdimacs --output test/output/metric_basic_empty.qdimacs --metric basic --stable; \
+      diff test/output/metric_basic_empty.qdimacs test/expected/metric_basic_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_basic.comment
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/comment.qdimacs --output test/output/metric_basic_comment.qdimacs --metric basic --stable; \
+      diff test/output/metric_basic_comment.qdimacs test/expected/metric_basic_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_basic.short
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/short.qdimacs --output test/output/metric_basic_short.qdimacs --metric basic --stable; \
+      diff test/output/metric_basic_short.qdimacs test/expected/metric_basic_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_basic.extended
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/extended.qdimacs --output test/output/metric_basic_extended.qdimacs --metric basic --stable; \
+      diff test/output/metric_basic_extended.qdimacs test/expected/metric_basic_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_basic.binaries
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/binaries.qdimacs --output test/output/metric_basic_binaries.qdimacs --metric basic --stable; \
+      diff test/output/metric_basic_binaries.qdimacs test/expected/metric_basic_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_basicinverse.empty
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/empty.qdimacs --output test/output/metric_basicinverse_empty.qdimacs --metric basic --stable --inverse; \
+      diff test/output/metric_basicinverse_empty.qdimacs test/expected/metric_basicinverse_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_basicinverse.comment
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/comment.qdimacs --output test/output/metric_basicinverse_comment.qdimacs --metric basic --stable --inverse; \
+      diff test/output/metric_basicinverse_comment.qdimacs test/expected/metric_basicinverse_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_basicinverse.short
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/short.qdimacs --output test/output/metric_basicinverse_short.qdimacs --metric basic --stable --inverse; \
+      diff test/output/metric_basicinverse_short.qdimacs test/expected/metric_basicinverse_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_basicinverse.extended
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/extended.qdimacs --output test/output/metric_basicinverse_extended.qdimacs --metric basic --stable --inverse; \
+      diff test/output/metric_basicinverse_extended.qdimacs test/expected/metric_basicinverse_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_basicinverse.binaries
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/binaries.qdimacs --output test/output/metric_basicinverse_binaries.qdimacs --metric basic --stable --inverse; \
+      diff test/output/metric_basicinverse_binaries.qdimacs test/expected/metric_basicinverse_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_frequency.empty
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/empty.qdimacs --output test/output/metric_frequency_empty.qdimacs --metric frequency --stable; \
+      diff test/output/metric_frequency_empty.qdimacs test/expected/metric_frequency_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_frequency.comment
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/comment.qdimacs --output test/output/metric_frequency_comment.qdimacs --metric frequency --stable; \
+      diff test/output/metric_frequency_comment.qdimacs test/expected/metric_frequency_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_frequency.short
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/short.qdimacs --output test/output/metric_frequency_short.qdimacs --metric frequency --stable; \
+      diff test/output/metric_frequency_short.qdimacs test/expected/metric_frequency_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_frequency.extended
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/extended.qdimacs --output test/output/metric_frequency_extended.qdimacs --metric frequency --stable; \
+      diff test/output/metric_frequency_extended.qdimacs test/expected/metric_frequency_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_frequency.binaries
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/binaries.qdimacs --output test/output/metric_frequency_binaries.qdimacs --metric frequency --stable; \
+      diff test/output/metric_frequency_binaries.qdimacs test/expected/metric_frequency_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_frequencyinverse.empty
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/empty.qdimacs --output test/output/metric_frequencyinverse_empty.qdimacs --metric frequency --stable --inverse; \
+      diff test/output/metric_frequencyinverse_empty.qdimacs test/expected/metric_frequencyinverse_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_frequencyinverse.comment
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/comment.qdimacs --output test/output/metric_frequencyinverse_comment.qdimacs --metric frequency --stable --inverse; \
+      diff test/output/metric_frequencyinverse_comment.qdimacs test/expected/metric_frequencyinverse_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_frequencyinverse.short
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/short.qdimacs --output test/output/metric_frequencyinverse_short.qdimacs --metric frequency --stable --inverse; \
+      diff test/output/metric_frequencyinverse_short.qdimacs test/expected/metric_frequencyinverse_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_frequencyinverse.extended
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/extended.qdimacs --output test/output/metric_frequencyinverse_extended.qdimacs --metric frequency --stable --inverse; \
+      diff test/output/metric_frequencyinverse_extended.qdimacs test/expected/metric_frequencyinverse_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_frequencyinverse.binaries
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/binaries.qdimacs --output test/output/metric_frequencyinverse_binaries.qdimacs --metric frequency --stable --inverse; \
+      diff test/output/metric_frequencyinverse_binaries.qdimacs test/expected/metric_frequencyinverse_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_countedBinaries.empty
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/empty.qdimacs --output test/output/metric_countedBinaries_empty.qdimacs --metric countedBinaries --stable; \
+      diff test/output/metric_countedBinaries_empty.qdimacs test/expected/metric_countedBinaries_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_countedBinaries.comment
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/comment.qdimacs --output test/output/metric_countedBinaries_comment.qdimacs --metric countedBinaries --stable; \
+      diff test/output/metric_countedBinaries_comment.qdimacs test/expected/metric_countedBinaries_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_countedBinaries.short
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/short.qdimacs --output test/output/metric_countedBinaries_short.qdimacs --metric countedBinaries --stable; \
+      diff test/output/metric_countedBinaries_short.qdimacs test/expected/metric_countedBinaries_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_countedBinaries.extended
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/extended.qdimacs --output test/output/metric_countedBinaries_extended.qdimacs --metric countedBinaries --stable; \
+      diff test/output/metric_countedBinaries_extended.qdimacs test/expected/metric_countedBinaries_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_countedBinaries.binaries
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/binaries.qdimacs --output test/output/metric_countedBinaries_binaries.qdimacs --metric countedBinaries --stable; \
+      diff test/output/metric_countedBinaries_binaries.qdimacs test/expected/metric_countedBinaries_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_countedBinariesinverse.empty
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/empty.qdimacs --output test/output/metric_countedBinariesinverse_empty.qdimacs --metric countedBinaries --stable --inverse; \
+      diff test/output/metric_countedBinariesinverse_empty.qdimacs test/expected/metric_countedBinariesinverse_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_countedBinariesinverse.comment
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/comment.qdimacs --output test/output/metric_countedBinariesinverse_comment.qdimacs --metric countedBinaries --stable --inverse; \
+      diff test/output/metric_countedBinariesinverse_comment.qdimacs test/expected/metric_countedBinariesinverse_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_countedBinariesinverse.short
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/short.qdimacs --output test/output/metric_countedBinariesinverse_short.qdimacs --metric countedBinaries --stable --inverse; \
+      diff test/output/metric_countedBinariesinverse_short.qdimacs test/expected/metric_countedBinariesinverse_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_countedBinariesinverse.extended
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/extended.qdimacs --output test/output/metric_countedBinariesinverse_extended.qdimacs --metric countedBinaries --stable --inverse; \
+      diff test/output/metric_countedBinariesinverse_extended.qdimacs test/expected/metric_countedBinariesinverse_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_countedBinariesinverse.binaries
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/binaries.qdimacs --output test/output/metric_countedBinariesinverse_binaries.qdimacs --metric countedBinaries --stable --inverse; \
+      diff test/output/metric_countedBinariesinverse_binaries.qdimacs test/expected/metric_countedBinariesinverse_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_weightedBinaries.empty
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/empty.qdimacs --output test/output/metric_weightedBinaries_empty.qdimacs --metric weightedBinaries --stable; \
+      diff test/output/metric_weightedBinaries_empty.qdimacs test/expected/metric_weightedBinaries_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_weightedBinaries.comment
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/comment.qdimacs --output test/output/metric_weightedBinaries_comment.qdimacs --metric weightedBinaries --stable; \
+      diff test/output/metric_weightedBinaries_comment.qdimacs test/expected/metric_weightedBinaries_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_weightedBinaries.short
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/short.qdimacs --output test/output/metric_weightedBinaries_short.qdimacs --metric weightedBinaries --stable; \
+      diff test/output/metric_weightedBinaries_short.qdimacs test/expected/metric_weightedBinaries_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_weightedBinaries.extended
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/extended.qdimacs --output test/output/metric_weightedBinaries_extended.qdimacs --metric weightedBinaries --stable; \
+      diff test/output/metric_weightedBinaries_extended.qdimacs test/expected/metric_weightedBinaries_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_weightedBinaries.binaries
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/binaries.qdimacs --output test/output/metric_weightedBinaries_binaries.qdimacs --metric weightedBinaries --stable; \
+      diff test/output/metric_weightedBinaries_binaries.qdimacs test/expected/metric_weightedBinaries_binaries.qdimacs \
+      "
+  )
+
+  add_test(NAME metric_weightedBinariesinverse.empty
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/empty.qdimacs --output test/output/metric_weightedBinariesinverse_empty.qdimacs --metric weightedBinaries --stable --inverse; \
+      diff test/output/metric_weightedBinariesinverse_empty.qdimacs test/expected/metric_weightedBinariesinverse_empty.qdimacs \
+      "
+  )
+  add_test(NAME metric_weightedBinariesinverse.comment
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/comment.qdimacs --output test/output/metric_weightedBinariesinverse_comment.qdimacs --metric weightedBinaries --stable --inverse; \
+      diff test/output/metric_weightedBinariesinverse_comment.qdimacs test/expected/metric_weightedBinariesinverse_comment.qdimacs \
+      "
+  )
+  add_test(NAME metric_weightedBinariesinverse.short
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/short.qdimacs --output test/output/metric_weightedBinariesinverse_short.qdimacs --metric weightedBinaries --stable --inverse; \
+      diff test/output/metric_weightedBinariesinverse_short.qdimacs test/expected/metric_weightedBinariesinverse_short.qdimacs \
+      "
+  )
+  add_test(NAME metric_weightedBinariesinverse.extended
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/extended.qdimacs --output test/output/metric_weightedBinariesinverse_extended.qdimacs --metric weightedBinaries --stable --inverse; \
+      diff test/output/metric_weightedBinariesinverse_extended.qdimacs test/expected/metric_weightedBinariesinverse_extended.qdimacs \
+      "
+  )
+  add_test(NAME metric_weightedBinariesinverse.binaries
+      COMMAND bash -c " \
+      ./qbfsort --input test/input/binaries.qdimacs --output test/output/metric_weightedBinariesinverse_binaries.qdimacs --metric weightedBinaries --stable --inverse; \
+      diff test/output/metric_weightedBinariesinverse_binaries.qdimacs test/expected/metric_weightedBinariesinverse_binaries.qdimacs \
       "
   )
 endif()

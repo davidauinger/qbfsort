@@ -1,14 +1,14 @@
-#ifndef QBFSORT_LITERALSORTER_HPP
-#define QBFSORT_LITERALSORTER_HPP
+#ifndef QBFSORT_QUANTIFIERSORTER_HPP
+#define QBFSORT_QUANTIFIERSORTER_HPP
 
 #include "Sorter.hpp"
 
 namespace qbfsort {
 
-class LiteralSorter : public Sorter<std::int32_t> {
+class QuantifierSorter : public Sorter<std::int32_t> {
 public:
-  LiteralSorter(const Formula &formula, const std::string &metric,
-                bool isInverse = false);
+  QuantifierSorter(const Formula &formula, const std::string &metric,
+                   bool isInverse = false);
   static const std::map<std::string_view, std::string_view> &getMetricsMap();
 
 private:

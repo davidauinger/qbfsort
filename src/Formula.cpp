@@ -4,7 +4,9 @@
 #include <cstdlib>
 #include <string>
 
+#ifdef WITH_JSONCPP
 #include <json/json.h>
+#endif
 
 qbfsort::Formula qbfsort::Formula::fromStream(std::istream &from) {
   Formula formula;
@@ -90,6 +92,7 @@ void qbfsort::Formula::toStream(const Formula &formula, std::ostream &to) {
   }
 }
 
+#ifdef WITH_JSONCPP
 void qbfsort::Formula::printStatistics(std::ostream &to) const {
   Json::Value root;
   Json::StreamWriterBuilder builder;
@@ -157,6 +160,7 @@ void qbfsort::Formula::printStatistics(std::ostream &to) const {
   }
   writer->write(root, &to);
 }
+#endif
 
 void qbfsort::Formula::sortLiterals(
     const std::function<bool(std::int32_t, std::int32_t)> &sorter) {

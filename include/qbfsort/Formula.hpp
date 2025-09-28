@@ -14,7 +14,9 @@ class Formula {
 public:
   static Formula fromStream(std::istream &from);
   static void toStream(const Formula &formula, std::ostream &to);
+#ifdef WITH_JSONCPP
   void printStatistics(std::ostream &to) const;
+#endif
   void
   sortLiterals(const std::function<bool(std::int32_t, std::int32_t)> &sorter);
   void stableSortLiterals(
