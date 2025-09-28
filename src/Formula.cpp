@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <random>
 #include <string>
 
 #ifdef WITH_JSONCPP
@@ -203,6 +204,22 @@ void qbfsort::Formula::stableSortQuantifiers(
   }
 }
 
+std::size_t qbfsort::Formula::getRandom(std::int32_t variable) const {
+  if (random.empty()) {
+    precomputeRandom();
+  }
+  return random.at(variable);
+}
+
+std::size_t qbfsort::Formula::getRandomClause(
+    const std::vector<std::int32_t> &clause) const {
+  std::int32_t sum{0};
+  for (auto literal : clause) {
+    sum += getRandom(std::abs(literal));
+  }
+  return sum;
+}
+
 std::int32_t qbfsort::Formula::getFrequencyLiteral(std::int32_t literal) const {
   if (frequenciesPositive.empty() || frequenciesNegative.empty()) {
     precomputeFrequencies();
@@ -310,13 +327,6 @@ double qbfsort::Formula::getWeightedBinariesWeightClauseMean(
          static_cast<double>(clause.size());
 }
 
-std::size_t qbfsort::Formula::getHashcode() const {
-  if (hashcode.empty()) {
-    precomputeHashcode();
-  }
-  return hashcode.at(0);
-}
-
 const qbfsort::Formula::Quantifier qbfsort::Formula::Quantifier::exists{
     Formula::Quantifier("e")};
 
@@ -416,6 +426,15 @@ double qbfsort::Formula::getLiteralWeight(std::int32_t literal) const {
                      : literalWeightsNegative[-literal];
 }
 
+void qbfsort::Formula::precomputeRandom() const {
+  random = std::vector<std::size_t>(numberOfAtoms + 1, 0);
+  std::mt19937 generator;
+  generator.seed(getSeed());
+  for (std::int32_t atom{1}; atom <= numberOfAtoms; ++atom) {
+    random[atom] = generator();
+  }
+}
+
 void qbfsort::Formula::precomputeFrequencies() const {
   frequenciesPositive = std::vector<std::int32_t>(numberOfAtoms + 1, 0);
   frequenciesNegative = std::vector<std::int32_t>(numberOfAtoms + 1, 0);
@@ -497,21 +516,20 @@ void qbfsort::Formula::precomputeLiteralWeights() const {
   }
 }
 
-void qbfsort::Formula::precomputeHashcode() const {
-  hashcode = std::vector<std::size_t>(1);
-  std::size_t prefixHash{prefix.size()};
+std::uint32_t qbfsort::Formula::getSeed() const {
+  std::uint32_t prefixHash{static_cast<std::uint32_t>(prefix.size())};
   for (const auto &[quantifier, block] : prefix) {
     for (auto variable : block) {
       prefixHash ^= quantifier == Quantifier::exists ? variable : ~variable;
-      prefixHash = (prefixHash << 16) | (prefixHash >> 16);
+      prefixHash = (prefixHash << 3) | (prefixHash >> 29);
     }
   }
-  std::size_t matrixHash{matrix.size()};
+  std::uint32_t matrixHash{static_cast<std::uint32_t>(matrix.size())};
   for (const auto &clause : matrix) {
     for (auto literal : clause) {
       matrixHash ^= literal;
-      matrixHash = (matrixHash << 16) | (matrixHash >> 16);
+      matrixHash = (matrixHash << 3) | (matrixHash >> 29);
     }
   }
-  hashcode[0] = prefixHash ^ matrixHash;
+  return prefixHash ^ matrixHash;
 }

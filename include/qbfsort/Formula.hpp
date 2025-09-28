@@ -31,6 +31,8 @@ public:
       const std::function<bool(std::int32_t, std::int32_t)> &sorter);
   void stableSortQuantifiers(
       const std::function<bool(std::int32_t, std::int32_t)> &sorter);
+  std::size_t getRandom(std::int32_t variable) const;
+  std::size_t getRandomClause(const std::vector<std::int32_t> &clause) const;
   std::int32_t getFrequencyLiteral(std::int32_t literal) const;
   std::int32_t getFrequencyVariable(std::int32_t variable) const;
   std::int32_t
@@ -56,7 +58,6 @@ public:
       const std::vector<std::int32_t> &clause) const;
   double getWeightedBinariesWeightClauseMean(
       const std::vector<std::int32_t> &clause) const;
-  std::size_t getHashcode() const;
 
 private:
   static constexpr std::string_view COMMENT_LINE_C{"c"};
@@ -79,6 +80,7 @@ private:
   std::int32_t numberOfAtoms;
   std::vector<std::pair<Quantifier, std::vector<std::int32_t>>> prefix;
   std::vector<std::vector<std::int32_t>> matrix;
+  mutable std::vector<std::size_t> random;
   mutable std::vector<std::int32_t> frequenciesPositive;
   mutable std::vector<std::int32_t> frequenciesNegative;
   mutable std::set<std::pair<std::int32_t, std::int32_t>> binaryClauses;
@@ -89,7 +91,6 @@ private:
   mutable std::vector<double> weightedBinariesWeights;
   mutable std::vector<double> literalWeightsPositive;
   mutable std::vector<double> literalWeightsNegative;
-  mutable std::vector<std::size_t> hashcode;
   Formula() = default;
   static std::vector<
       std::pair<std::int32_t, std::pair<std::int32_t, std::int32_t>>>
@@ -101,12 +102,13 @@ private:
   getNewBinaryClauses(std::int32_t literal) const;
   double getBinaryWeight(std::int32_t literal) const;
   double getLiteralWeight(std::int32_t literal) const;
+  void precomputeRandom() const;
   void precomputeFrequencies() const;
   void precomputeBinaryClauses() const;
   void precomputeNewBinaryClauses() const;
   void precomputeWeightedBinariesWeights() const;
   void precomputeLiteralWeights() const;
-  void precomputeHashcode() const;
+  std::uint32_t getSeed() const;
 };
 
 } // namespace qbfsort
