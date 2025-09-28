@@ -3,8 +3,9 @@
 #include <cstdlib>
 
 qbfsort::ClauseSorter::ClauseSorter(const Formula &formula,
-                                    const std::vector<std::string> &metrics)
-    : formula{formula} {
+                                    const std::vector<std::string> &metrics,
+                                    bool isInverse)
+    : formula{formula}, isInverse{isInverse} {
   for (const auto &m : metrics) {
     compareMethods.push_back(getCompareMethod(m));
   }
@@ -15,7 +16,7 @@ bool qbfsort::ClauseSorter::operator()(
     const std::vector<std::int32_t> &right) const {
   for (const auto &m : compareMethods) {
     if (auto c{m(formula, left, right)}; c != 0) {
-      return c < 0;
+      return isInverse ? c > 0 : c < 0;
     }
   }
   return false;
@@ -168,8 +169,15 @@ std::int32_t qbfsort::ClauseSorter::compareCountedBinariesVariableMeans(
 std::int32_t qbfsort::ClauseSorter::compareWeightedBinariesSums(
     const Formula &formula, const std::vector<std::int32_t> &left,
     const std::vector<std::int32_t> &right) {
-  return formula.getWeightedBinariesWeightClauseSum(right) -
-         formula.getWeightedBinariesWeightClauseSum(left);
+  const auto leftSum{formula.getWeightedBinariesWeightClauseSum(left)};
+  const auto rightSum{formula.getWeightedBinariesWeightClauseSum(right)};
+  if (leftSum > rightSum) {
+    return -1;
+  }
+  if (leftSum < rightSum) {
+    return 1;
+  }
+  return 0;
 }
 
 std::int32_t qbfsort::ClauseSorter::compareWeightedBinariesMeans(

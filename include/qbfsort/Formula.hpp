@@ -19,12 +19,12 @@ public:
   sortLiterals(const std::function<bool(std::int32_t, std::int32_t)> &sorter);
   void stableSortLiterals(
       const std::function<bool(std::int32_t, std::int32_t)> &sorter);
-  void sortClauses(std::function<bool(const std::vector<std::int32_t> &,
-                                      const std::vector<std::int32_t> &)>
-                       sorter);
-  void stableSortClauses(std::function<bool(const std::vector<std::int32_t> &,
-                                            const std::vector<std::int32_t> &)>
-                             sorter);
+  void sortClauses(
+      const std::function<bool(const std::vector<std::int32_t> &,
+                               const std::vector<std::int32_t> &)> &sorter);
+  void stableSortClauses(
+      const std::function<bool(const std::vector<std::int32_t> &,
+                               const std::vector<std::int32_t> &)> &sorter);
   void sortQuantifiers(
       const std::function<bool(std::int32_t, std::int32_t)> &sorter);
   void stableSortQuantifiers(

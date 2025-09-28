@@ -29,7 +29,8 @@ public:
       "countedBinariesVariableMeans"};
   static constexpr std::string_view metricWeightedBinariesSums{"weightedBinariesSums"};
   static constexpr std::string_view metricWeightedBinariesMeans{"weightedBinariesMeans"};
-  ClauseSorter(const Formula &formula, const std::vector<std::string> &metrics);
+  ClauseSorter(const Formula &formula, const std::vector<std::string> &metrics,
+               bool isInverse = false);
   bool operator()(const std::vector<std::int32_t> &left,
                   const std::vector<std::int32_t> &right) const;
 
@@ -86,6 +87,7 @@ private:
                           const std::vector<std::int32_t> &left,
                           const std::vector<std::int32_t> &right);
   const Formula formula;
+  const bool isInverse;
 };
 
 } // namespace qbfsort
