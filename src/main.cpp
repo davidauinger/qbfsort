@@ -1,30 +1,34 @@
-#include <cstring>
-#include <iostream>
-#include <fstream>
-#include <memory>
-#include <map>
-#include <vector>
-#include <string>
+#include <qbfsort/ClauseSorter.hpp>
+#include <qbfsort/LiteralSorter.hpp>
+#include <qbfsort/QbfFormula.hpp>
+#include <qbfsort/QuantifierSorter.hpp>
 
-#include "QbfFormula.hpp"
-#include "LiteralSorter.hpp"
-#include "ClauseSorter.hpp"
-#include "QuantifierSorter.hpp"
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 std::map<std::string, std::string> parseArgs(int argc, char **argv);
-void printStatistics(QbfFormula &formula, const std::map<std::string, std::string> &args);
-void sortLiterals(QbfFormula &formula, const std::map<std::string, std::string> &args);
-void sortClauses(QbfFormula &formula, const std::map<std::string, std::string> &args);
-void sortQuantifiers(QbfFormula &formula, const std::map<std::string, std::string> &args);
+void printStatistics(qbfsort::QbfFormula &formula,
+                     const std::map<std::string, std::string> &args);
+void sortLiterals(qbfsort::QbfFormula &formula,
+                  const std::map<std::string, std::string> &args);
+void sortClauses(qbfsort::QbfFormula &formula,
+                 const std::map<std::string, std::string> &args);
+void sortQuantifiers(qbfsort::QbfFormula &formula,
+                     const std::map<std::string, std::string> &args);
 
 int main(int argc, char **argv) {
-  QbfFormula f{QbfFormula::fromStream(std::cin)};
+  qbfsort::QbfFormula f{qbfsort::QbfFormula::fromStream(std::cin)};
   std::map<std::string, std::string> args{parseArgs(argc, argv)};
   printStatistics(f, args);
   sortLiterals(f, args);
   sortClauses(f, args);
   sortQuantifiers(f, args);
-  QbfFormula::toStream(f, std::cout);
+  qbfsort::QbfFormula::toStream(f, std::cout);
   return 0;
 }
 
@@ -34,12 +38,13 @@ std::map<std::string, std::string> parseArgs(int argc, char **argv) {
     char *str{std::strpbrk(argv[i], "=")};
     const std::string &key{str ? std::string(argv[i], str - argv[i]) : argv[i]};
     const std::string &value{str ? str + 1 : ""};
-    args.emplace(key , value);
+    args.emplace(key, value);
   }
   return args;
 }
 
-void printStatistics(QbfFormula &formula, const std::map<std::string, std::string> &args) {
+void printStatistics(qbfsort::QbfFormula &formula,
+                     const std::map<std::string, std::string> &args) {
   auto it{args.find("printStatistics")};
   if (it == args.end()) {
     return;
@@ -48,40 +53,47 @@ void printStatistics(QbfFormula &formula, const std::map<std::string, std::strin
   formula.printStatistics(to);
 }
 
-void sortLiterals(QbfFormula &formula, const std::map<std::string, std::string> &args) {
+void sortLiterals(qbfsort::QbfFormula &formula,
+                  const std::map<std::string, std::string> &args) {
   auto it{args.find("sortLiterals")};
   if (it == args.end()) {
     return;
   }
-  std::shared_ptr<LiteralSorter> sorter{LiteralSorter::create(it->second, formula, args)};
+  std::shared_ptr<qbfsort::LiteralSorter> sorter{
+      qbfsort::LiteralSorter::create(it->second, formula, args)};
   if (sorter) {
-    formula.sortLiterals([sorter] (std::int32_t left, std::int32_t right) {
+    formula.sortLiterals([sorter](std::int32_t left, std::int32_t right) {
       return (*sorter)(left, right);
     });
   }
 }
 
-void sortClauses(QbfFormula &formula, const std::map<std::string, std::string> &args) {
+void sortClauses(qbfsort::QbfFormula &formula,
+                 const std::map<std::string, std::string> &args) {
   auto it{args.find("sortClauses")};
   if (it == args.end()) {
     return;
   }
-  std::shared_ptr<ClauseSorter> sorter{ClauseSorter::create(it->second, formula, args)};
+  std::shared_ptr<qbfsort::ClauseSorter> sorter{
+      qbfsort::ClauseSorter::create(it->second, formula, args)};
   if (sorter) {
-    formula.sortClauses([sorter] (std::vector<std::int32_t> left, std::vector<std::int32_t> right) {
+    formula.sortClauses([sorter](std::vector<std::int32_t> left,
+                                 std::vector<std::int32_t> right) {
       return (*sorter)(left, right);
     });
   }
 }
 
-void sortQuantifiers(QbfFormula &formula, const std::map<std::string, std::string> &args) {
+void sortQuantifiers(qbfsort::QbfFormula &formula,
+                     const std::map<std::string, std::string> &args) {
   auto it{args.find("sortQuantifiers")};
   if (it == args.end()) {
     return;
   }
-  std::shared_ptr<QuantifierSorter> sorter{QuantifierSorter::create(it->second, formula, args)};
+  std::shared_ptr<qbfsort::QuantifierSorter> sorter{
+      qbfsort::QuantifierSorter::create(it->second, formula, args)};
   if (sorter) {
-    formula.sortQuantifiers([sorter] (std::int32_t left, std::int32_t right) {
+    formula.sortQuantifiers([sorter](std::int32_t left, std::int32_t right) {
       return (*sorter)(left, right);
     });
   }

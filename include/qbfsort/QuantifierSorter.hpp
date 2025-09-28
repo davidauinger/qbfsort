@@ -1,5 +1,5 @@
-#ifndef QUANTIFIERSORTER
-#define QUANTIFIERSORTER
+#ifndef QBFSORT_QUANTIFIERSORTER_HPP
+#define QBFSORT_QUANTIFIERSORTER_HPP
 
 #include "QbfFormula.hpp"
 
@@ -8,56 +8,64 @@
 #include <memory>
 #include <string_view>
 
-class QuantifierSorter
-{
+namespace qbfsort {
+
+class QuantifierSorter {
 public:
-  static std::shared_ptr<QuantifierSorter> create(const std::string &className, QbfFormula &formula, const std::map<std::string, std::string> &args);
+  static std::shared_ptr<QuantifierSorter>
+  create(const std::string &className, QbfFormula &formula,
+         const std::map<std::string, std::string> &args);
   QuantifierSorter(const QbfFormula &formula);
   virtual ~QuantifierSorter() = default;
   bool operator()(std::int32_t left, std::int32_t right) const;
+
 protected:
   const QbfFormula &formula;
+
 private:
-  using factoryMethod = std::function<std::shared_ptr<QuantifierSorter>(QbfFormula&, const std::map<std::string, std::string>&)>;
+  using factoryMethod = std::function<std::shared_ptr<QuantifierSorter>(
+      QbfFormula &, const std::map<std::string, std::string> &)>;
   static std::map<std::string, factoryMethod> factoryMap;
   virtual bool sort(std::int32_t left, std::int32_t right) const = 0;
 };
 
-class BasicQuantifierSorter : public QuantifierSorter
-{
+class BasicQuantifierSorter : public QuantifierSorter {
 public:
   static constexpr std::string_view CLASS_NAME{"basic"};
   BasicQuantifierSorter(const QbfFormula &formula);
+
 private:
   bool sort(std::int32_t left, std::int32_t right) const override;
 };
 
-class FrequencyQuantifierSorter : public QuantifierSorter
-{
+class FrequencyQuantifierSorter : public QuantifierSorter {
 public:
   static constexpr std::string_view CLASS_NAME{"frequency"};
   FrequencyQuantifierSorter(const QbfFormula &formula);
+
 private:
   bool sort(std::int32_t left, std::int32_t right) const override;
 };
 
-class CountedBinariesQuantifierSorter : public QuantifierSorter
-{
+class CountedBinariesQuantifierSorter : public QuantifierSorter {
 public:
   static constexpr std::string_view CLASS_NAME{"countedBinaries"};
   CountedBinariesQuantifierSorter(const QbfFormula &formula);
+
 private:
   bool sort(std::int32_t left, std::int32_t right) const override;
   std::size_t getNewBinariesCount(std::int32_t literal) const;
 };
 
-class WeightedBinariesQuantifierSorter : public QuantifierSorter
-{
+class WeightedBinariesQuantifierSorter : public QuantifierSorter {
 public:
   static constexpr std::string_view CLASS_NAME{"weightedBinaries"};
   WeightedBinariesQuantifierSorter(const QbfFormula &formula);
+
 private:
   bool sort(std::int32_t left, std::int32_t right) const override;
 };
+
+} // namespace qbfsort
 
 #endif
