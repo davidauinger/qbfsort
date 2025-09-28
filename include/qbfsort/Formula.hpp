@@ -15,18 +15,20 @@ public:
   static Formula fromStream(std::istream &from);
   static void toStream(const Formula &formula, std::ostream &to);
   void printStatistics(std::ostream &to) const;
-  void sortLiterals(std::function<bool(std::int32_t, std::int32_t)> sorter);
   void
-  stableSortLiterals(std::function<bool(std::int32_t, std::int32_t)> sorter);
-  void sortClauses(
-      std::function<bool(const std::vector<std::int32_t>&, const std::vector<std::int32_t>&)>
-          sorter);
-  void stableSortClauses(
-      std::function<bool(const std::vector<std::int32_t>&, const std::vector<std::int32_t>&)>
-          sorter);
-  void sortQuantifiers(std::function<bool(std::int32_t, std::int32_t)> sorter);
-  void
-  stableSortQuantifiers(std::function<bool(std::int32_t, std::int32_t)> sorter);
+  sortLiterals(const std::function<bool(std::int32_t, std::int32_t)> &sorter);
+  void stableSortLiterals(
+      const std::function<bool(std::int32_t, std::int32_t)> &sorter);
+  void sortClauses(std::function<bool(const std::vector<std::int32_t> &,
+                                      const std::vector<std::int32_t> &)>
+                       sorter);
+  void stableSortClauses(std::function<bool(const std::vector<std::int32_t> &,
+                                            const std::vector<std::int32_t> &)>
+                             sorter);
+  void sortQuantifiers(
+      const std::function<bool(std::int32_t, std::int32_t)> &sorter);
+  void stableSortQuantifiers(
+      const std::function<bool(std::int32_t, std::int32_t)> &sorter);
   std::int32_t getFrequencyLiteral(std::int32_t literal) const;
   std::int32_t getFrequencyVariable(std::int32_t variable) const;
   std::int32_t
@@ -76,17 +78,30 @@ private:
   std::vector<std::vector<std::int32_t>> matrix;
   mutable std::vector<std::int32_t> frequenciesPositive;
   mutable std::vector<std::int32_t> frequenciesNegative;
-  mutable std::vector<std::int32_t> binaryCountsPositive;
-  mutable std::vector<std::int32_t> binaryCountsNegative;
-  mutable std::vector<double> binaryWeights;
+  mutable std::set<std::pair<std::int32_t, std::int32_t>> binaryClauses;
+  mutable std::vector<std::set<std::pair<std::int32_t, std::int32_t>>>
+      newBinaryClausesPositive;
+  mutable std::vector<std::set<std::pair<std::int32_t, std::int32_t>>>
+      newBinaryClausesNegative;
+  mutable std::vector<double> weightedBinariesWeights;
+  mutable std::vector<double> literalWeightsPositive;
+  mutable std::vector<double> literalWeightsNegative;
   Formula() = default;
+  static std::vector<
+      std::pair<std::int32_t, std::pair<std::int32_t, std::int32_t>>>
+  getAllBinaryClausesFromAssignment(const std::set<std::int32_t> &clause);
+  static double getPartialWeight(std::int32_t size);
+  const std::set<std::pair<std::int32_t, std::int32_t>> &
+  getBinaryClauses() const;
+  const std::set<std::pair<std::int32_t, std::int32_t>> &
+  getNewBinaryClauses(std::int32_t literal) const;
+  double getBinaryWeight(std::int32_t literal) const;
+  double getLiteralWeight(std::int32_t literal) const;
   void precomputeFrequencies() const;
-  void precomputeBinaryCounts() const;
-  void precomputeBinaryWeights() const;
-  std::set<std::pair<std::int32_t, std::int32_t>>
-  getNewBinaryClausesByAssignment(std::int32_t literal) const;
-  double getWeightedBinariesHeuristic(std::int32_t literal) const;
-  double getWeightedBinariesLiteralWeight(std::int32_t literal) const;
+  void precomputeBinaryClauses() const;
+  void precomputeNewBinaryClauses() const;
+  void precomputeWeightedBinariesWeights() const;
+  void precomputeLiteralWeights() const;
 };
 
 } // namespace qbfsort
