@@ -11,16 +11,28 @@ make
 ```
 An executable file `qbfsort` should then be in the build directory.
 
+# Installation
+
+The `CMakeLists.txt` file supports installation with `make install`. If a custom installation path is desired, set the variable `CMAKE_INSTALL_PREFIX` when running cmake. This will install the project in the home directory:
+```
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=~ ..
+make
+make install
+```
+
 # Tests
 
-The `CMakeLists.txt` file contains optional tests. The tests need to be copied to the build directory during configuration. To include the tests, run cmake with the variable `WITH_TESTS=ON`:
+The `CMakeLists.txt` file contains optional tests. The project needs to be installed with `make install` before running the tests. To include the tests, run cmake with the variable `WITH_TESTS=ON`:
 ```
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DWITH_TESTS=ON ..
 make
+make install
 ```
-The tests can be executed from the build directory:
+The tests can be executed with ctest:
 ```
 ctest --output-on-failure
 ```
@@ -37,12 +49,22 @@ This will also remove the option to print the statistics.
 
 Both the input QBF and the output QBF are in the [QDIMACS standard](https://www.qbflib.org/qdimacs.html). By default, the program reads the input QBF from stdin and writes the output QBF to stdout. Of course, these can be redirected to files, so a typical call might look like:
 ```
-./qbfsort < input > output
+qbfsort < input > output
 ```
 
-The program supports three kinds of sortings: literals, clauses and quantifiers. For each sorting the metric can be chosen on the command line (`--literals <metric>`, `--clauses <metric>`, `--quantifiers <metric>`). These metrics can be set for each kind of sorting separately. For example, to take the QBF from `example.qdimacs`, sort the literals by the number of newly created binary clauses, do not sort the clauses, sort the quantifiers by the canonical order and write the resulting QBF to `output.qdimacs`, the command may look like:
+The program supports three kinds of sortings: literals, clauses and quantifiers. For each sorting the metric can be chosen on the command line (`--literals <metric>`, `--clauses <metric>`, `--quantifiers <metric>`). These metrics can be set for each kind of sorting separately. For example, to take the QBF from `example.qdimacs`, sort the literals by the number of newly created binary clauses, do not sort the clauses, sort the quantifiers by the lexicographic order and write the resulting QBF to `output.qdimacs`, the command may look like:
 ```
-./qbfsort --literals countedBinaries  --quantifiers basic < example.qdimacs > output.qdimacs
+qbfsort --literals countedBinaries  --quantifiers basic < example.qdimacs > output.qdimacs
+```
+
+To facilitate the sorting of formulas in entire directories, a script `qbfsortdir.sh` is available. This script expects the input and output directory as first and second argument, respectively. All further arguments are passed directly to the sorting executable. This will sort all the files from `indir` and put them in `outdir`, using the same metrics as above:
+```
+qbfsortdir.sh indir outdir --literals countedBinaries  --quantifiers basic
+```
+Multiple files can also be sorted in parallel by passing `-j` with the number of desired parallel jobs or `-n` (number of parallel jobs is number available processing units):
+```
+qbfsortdir.sh -j 8 indir outdir --literals countedBinaries  --quantifiers basic
+qbfsortdir.sh -n indir outdir --literals countedBinaries  --quantifiers basic
 ```
 
 # Command line options
@@ -73,9 +95,13 @@ This metric does not sort at all but all elements are equal. This is mainly avai
 
 ## basic
 
-This metric sorts the QBF in the canonical order of the literals. That means, negative literals come first, where -1 is the highest negative literal, then comes 1 and the other positive literals in canonical order. This metric does not take into consideration the occurrences of variables in the formula, but is mainly intended for testing purposes and to provide a defined (unique) order of the formula.
+This metric sorts the QBF in the lexicographic order of the literals. That means, negative literals come first, where -1 is the highest negative literal, then comes 1 and the other positive literals in lexicographic order. This metric does not take into consideration the occurrences of variables in the formula, but is mainly intended for testing purposes and to provide a defined (unique) order of the formula.
 
-For example in the clause `1 5 -3 0` the literals will be sorted to `-3 1 5 0`. Clauses are sorted according to their first literal first, then their second literal (if the first literal is equal) and so on. The literals in the clauses are compared in the order they appear in the clause, such that the clause `6 1 3 0` is less than the clause `7 -1 8 0`, even though the second clause has a literal less than any literal in the first clause. Be aware that if both literals and clauses are sorted, the sorting of literals comes first, which might affect the order of the clauses. Quantifier blocks are sorted by sorting the variables in their canonical order. A quantifier block `e 3 7 1 4 0` is sorted to `e 1 3 4 7 0`.
+For example in the clause `1 5 -3 0` the literals will be sorted to `-3 1 5 0`. Clauses are sorted according to their first literal first, then their second literal (if the first literal is equal) and so on. The literals in the clauses are compared in the order they appear in the clause, such that the clause `6 1 3 0` is less than the clause `7 -1 8 0`, even though the second clause has a literal less than any literal in the first clause. Be aware that if both literals and clauses are sorted, the sorting of literals comes first, which might affect the order of the clauses. Quantifier blocks are sorted by sorting the variables in their lexicographic order. A quantifier block `e 3 7 1 4 0` is sorted to `e 1 3 4 7 0`.
+
+## random
+
+This metric sorts the QBF in a random order. The order is determined by a pseudorandom number generator with a predefined seed. This makes the order reproducible over repeated runs.
 
 ## frequency
 

@@ -56,6 +56,7 @@ public:
       const std::vector<std::int32_t> &clause) const;
   double getWeightedBinariesWeightClauseMean(
       const std::vector<std::int32_t> &clause) const;
+  std::size_t getHashcode() const;
 
 private:
   static constexpr std::string_view COMMENT_LINE_C{"c"};
@@ -88,6 +89,7 @@ private:
   mutable std::vector<double> weightedBinariesWeights;
   mutable std::vector<double> literalWeightsPositive;
   mutable std::vector<double> literalWeightsNegative;
+  mutable std::vector<std::size_t> hashcode;
   Formula() = default;
   static std::vector<
       std::pair<std::int32_t, std::pair<std::int32_t, std::int32_t>>>
@@ -104,6 +106,7 @@ private:
   void precomputeNewBinaryClauses() const;
   void precomputeWeightedBinariesWeights() const;
   void precomputeLiteralWeights() const;
+  void precomputeHashcode() const;
 };
 
 } // namespace qbfsort

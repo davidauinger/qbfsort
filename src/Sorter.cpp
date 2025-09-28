@@ -41,6 +41,41 @@ std::int32_t qbfsort::Sorter<std::vector<std::int32_t>>::compareBasic(
 }
 
 template <>
+std::int32_t
+qbfsort::Sorter<std::int32_t>::compareRandom(const qbfsort::Formula &formula,
+                                             const std::int32_t &left,
+                                             const std::int32_t &right) {
+  generator.seed(formula.getHashcode() + left);
+  auto leftValue{generator()};
+  generator.seed(formula.getHashcode() + right);
+  auto rightValue{generator()};
+  return leftValue - rightValue;
+}
+
+template <>
+std::int32_t qbfsort::Sorter<std::vector<std::int32_t>>::compareRandom(
+    const qbfsort::Formula &formula, const std::vector<std::int32_t> &left,
+    const std::vector<std::int32_t> &right) {
+  std::vector<std::int32_t> leftValue(left), rightValue(right);
+  for (std::size_t i{0}; i < left.size(); ++i) {
+    generator.seed(formula.getHashcode() + left[i]);
+    generator();
+    leftValue[i] = generator();
+  }
+  for (std::size_t i{0}; i < right.size(); ++i) {
+    generator.seed(formula.getHashcode() + right[i]);
+    rightValue[i] = generator();
+  }
+  if (leftValue < rightValue) {
+    return -1;
+  }
+  if (leftValue > rightValue) {
+    return 1;
+  }
+  return 0;
+}
+
+template <>
 std::int32_t qbfsort::Sorter<std::int32_t>::compareFrequencyLiteral(
     const Formula &formula, std::int32_t left, std::int32_t right) {
   return formula.getFrequencyLiteral(right) - formula.getFrequencyLiteral(left);
@@ -212,6 +247,8 @@ qbfsort::Sorter<std::vector<std::int32_t>>::compareWeightedBinariesMeans(
   }
   return 0;
 }
+
+template <typename T> std::mt19937 qbfsort::Sorter<T>::generator;
 
 template class qbfsort::Sorter<std::int32_t>;
 
