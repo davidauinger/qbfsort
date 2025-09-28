@@ -13,6 +13,7 @@ class QuantifierSorter
 public:
   static std::shared_ptr<QuantifierSorter> create(const std::string &className, QbfFormula &formula, const std::map<std::string, std::string> &args);
   QuantifierSorter(const QbfFormula &formula);
+  virtual ~QuantifierSorter() = default;
   bool operator()(std::int32_t left, std::int32_t right) const;
 protected:
   const QbfFormula &formula;
@@ -27,6 +28,15 @@ class BasicQuantifierSorter : public QuantifierSorter
 public:
   static constexpr std::string_view CLASS_NAME{"basic"};
   BasicQuantifierSorter(const QbfFormula &formula);
+private:
+  bool sort(std::int32_t left, std::int32_t right) const override;
+};
+
+class FrequencyQuantifierSorter : public QuantifierSorter
+{
+public:
+  static constexpr std::string_view CLASS_NAME{"frequency"};
+  FrequencyQuantifierSorter(const QbfFormula &formula);
 private:
   bool sort(std::int32_t left, std::int32_t right) const override;
 };

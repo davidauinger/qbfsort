@@ -13,6 +13,7 @@ class ClauseSorter
 public:
   static std::shared_ptr<ClauseSorter> create(const std::string &className, QbfFormula &formula, const std::map<std::string, std::string> &args);
   ClauseSorter(const QbfFormula &formula);
+  virtual ~ClauseSorter() = default;
   bool operator()(const std::vector<std::int32_t> &left, const std::vector<std::int32_t> &right) const;
 protected:
   const QbfFormula &formula;
@@ -29,6 +30,16 @@ public:
   BasicClauseSorter(const QbfFormula &formula);
 private:
   bool sort(const std::vector<std::int32_t> &left, const std::vector<std::int32_t> &right) const override;
+};
+
+class FrequencyClauseSorter : public ClauseSorter
+{
+public:
+  static constexpr std::string_view CLASS_NAME{"frequency"};
+  FrequencyClauseSorter(const QbfFormula &formula);
+private:
+  bool sort(const std::vector<std::int32_t> &left, const std::vector<std::int32_t> &right) const override;
+  std::int32_t getFrequencies(const std::vector<std::int32_t> &literals) const;
 };
 
 class CountedBinariesClauseSorter : public ClauseSorter

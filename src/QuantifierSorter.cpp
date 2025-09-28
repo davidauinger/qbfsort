@@ -1,5 +1,7 @@
 #include "QuantifierSorter.hpp"
 
+#include <cstdlib>
+
 std::shared_ptr<QuantifierSorter> QuantifierSorter::create(const std::string &className, QbfFormula &formula, const std::map<std::string, std::string> &args) {
   auto it{factoryMap.find(className)};
   if (it == factoryMap.end()) {
@@ -18,6 +20,9 @@ std::map<std::string, QuantifierSorter::factoryMethod> QuantifierSorter::factory
   {std::string(BasicQuantifierSorter::CLASS_NAME), [] (QbfFormula &formula, const std::map<std::string, std::string> &args) {
     return std::make_shared<BasicQuantifierSorter>(formula);
   }},
+  {std::string(FrequencyQuantifierSorter::CLASS_NAME), [] (QbfFormula &formula, const std::map<std::string, std::string> &args) {
+    return std::make_shared<FrequencyQuantifierSorter>(formula);
+  }},
   {std::string(CountedBinariesQuantifierSorter::CLASS_NAME), [] (QbfFormula &formula, const std::map<std::string, std::string> &args) {
     return std::make_shared<CountedBinariesQuantifierSorter>(formula);
   }},
@@ -32,10 +37,16 @@ bool BasicQuantifierSorter::sort(std::int32_t left, std::int32_t right) const {
   return left < right;
 }
 
+FrequencyQuantifierSorter::FrequencyQuantifierSorter(const QbfFormula &formula) : QuantifierSorter(formula) {}
+
+bool FrequencyQuantifierSorter::sort(std::int32_t left, std::int32_t right) const {
+  return formula.getFrequency(left) > formula.getFrequency(right);
+}
+
 CountedBinariesQuantifierSorter::CountedBinariesQuantifierSorter(const QbfFormula &formula) : QuantifierSorter(formula) {}
 
 bool CountedBinariesQuantifierSorter::sort(std::int32_t left, std::int32_t right) const {
-  return getNewBinariesCount(left) < getNewBinariesCount(right);
+  return getNewBinariesCount(left) > getNewBinariesCount(right);
 }
 
 std::size_t CountedBinariesQuantifierSorter::getNewBinariesCount(std::int32_t literal) const {
@@ -45,5 +56,5 @@ std::size_t CountedBinariesQuantifierSorter::getNewBinariesCount(std::int32_t li
 WeightedBinariesQuantifierSorter::WeightedBinariesQuantifierSorter(const QbfFormula &formula) : QuantifierSorter(formula) {}
 
 bool WeightedBinariesQuantifierSorter::sort(std::int32_t left, std::int32_t right) const {
-  return formula.getWeightedBinariesWeight(left > 0 ? left : -left) < formula.getWeightedBinariesWeight(right > 0 ? right : -right);
+  return formula.getWeightedBinariesWeight(std::abs(left)) > formula.getWeightedBinariesWeight(std::abs(right));
 }

@@ -13,6 +13,7 @@ class LiteralSorter
 public:
   static std::shared_ptr<LiteralSorter> create(const std::string &className, QbfFormula &formula, const std::map<std::string, std::string> &args);
   LiteralSorter(const QbfFormula &formula);
+  virtual ~LiteralSorter() = default;
   bool operator()(std::int32_t left, std::int32_t right) const;
 protected:
   const QbfFormula &formula;
@@ -27,6 +28,15 @@ class BasicLiteralSorter : public LiteralSorter
 public:
   static constexpr std::string_view CLASS_NAME{"basic"};
   BasicLiteralSorter(const QbfFormula &formula);
+private:
+  bool sort(std::int32_t left, std::int32_t right) const override;
+};
+
+class FrequencyLiteralSorter : public LiteralSorter
+{
+public:
+  static constexpr std::string_view CLASS_NAME{"frequency"};
+  FrequencyLiteralSorter(const QbfFormula &formula);
 private:
   bool sort(std::int32_t left, std::int32_t right) const override;
 };
