@@ -6,10 +6,24 @@ A `CMakeLists.txt` file is provided with the project. To compile with cmake, run
 ```
 mkdir build
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
 An executable file `qbfsort` should then be in the build directory.
+
+# Tests
+
+The `CMakeLists.txt` file contains optional tests. The tests need to be copied to the build directory during configuration. To include the tests, run cmake with the variable `WITH_TESTS=ON`:
+```
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DWITH_TESTS=ON ..
+make
+```
+The tests can be executed from the build directory:
+```
+ctest --output-on-failure
+```
 
 # Usage
 
@@ -39,10 +53,10 @@ When sorting literals within a clause, the sign of the literal is ignored. Claus
 
 ## countedBinaries
 
-This metric takes into consideration the number of newly created binary clauses by assigning a variable to a literal. In other words, the number of ternary clauses containing the literal of the other sign is counted and taken as a measure. The formula is then sorted in descending order according to the number of newly created binary clauses (ternary clauses containing the literal of the opposite sign).
+This metric takes into consideration the number of unique newly created binary clauses by assigning a variable to a literal. In other words, the number of ternary clauses containing the literal of the other sign is counted and taken as a measure. The formula is then sorted in descending order according to the number of newly created binary clauses (ternary clauses containing the literal of the opposite sign).
 
 For sorting literals within a clause, the literals that create the most new binary clauses when being assigned to the formula come first. When sorting clauses, all new binary clauses created by assigning each literal in the clause are considered, possible duplicate binary clauses are eliminated, and the resulting number of (unique) newly created binary clauses is taken as a measure. For the quantifier blocks, the sum (of newly created binary clauses) for both the positive and the negative literal are used as a measure to sort the variables.
 
 ## weightedBinaries
 
-This metric calculates a heuristic for each variable that is based on the newly created binary clauses by assigning the variable the positive or negative literal. The heuristic for the variable is the product of the heuristics for both corresponding (positive and negative) literals. The heuristic for the literal is based on the newly created binary clauses by assigning that literal. First the newly created binary clauses are calculated. Each newly created binary clause is weighted and the heuristic of the literal is the sum of the weights of the binary clauses. The weight of the binary clause is the sum of the weights of both opposite literals in the binary clause. The weight of the literal is 5 times the number of occurrences in binary clauses, plus 1 times the number of occurrences in ternary clauses, plus 1/5 times the number of occurrences in clauses of size 4 and so on (factor is divided by 5 for each further literal in the clause).
+This metric calculates a heuristic for each variable that is based on the unique newly created binary clauses by assigning the variable the positive or negative literal. The heuristic for the variable is the product of the heuristics for both corresponding (positive and negative) literals. The heuristic for the literal is based on the newly created binary clauses by assigning that literal. First the newly created binary clauses are calculated. Each newly created binary clause is weighted and the heuristic of the literal is the sum of the weights of the binary clauses. The weight of the binary clause is the sum of the weights of both opposite literals in the binary clause. The weight of the literal is 5 times the number of occurrences in binary clauses, plus 1 times the number of occurrences in ternary clauses, plus 1/5 times the number of occurrences in clauses of size 4 and so on (factor is divided by 5 for each further literal in the clause).

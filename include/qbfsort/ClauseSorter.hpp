@@ -1,11 +1,9 @@
 #ifndef QBFSORT_CLAUSESORTER_HPP
 #define QBFSORT_CLAUSESORTER_HPP
 
-#include "QbfFormula.hpp"
+#include "Formula.hpp"
 
 #include <functional>
-#include <map>
-#include <memory>
 #include <string_view>
 #include <vector>
 
@@ -13,66 +11,81 @@ namespace qbfsort {
 
 class ClauseSorter {
 public:
-  static std::shared_ptr<ClauseSorter>
-  create(const std::string &className, QbfFormula &formula,
-         const std::map<std::string, std::string> &args);
-  ClauseSorter(const QbfFormula &formula);
-  virtual ~ClauseSorter() = default;
+  static constexpr std::string_view metricNone{"none"};
+  static constexpr std::string_view metricBasic{"basic"};
+  static constexpr std::string_view metricFrequencyLiteralSums{"frequencyLiteralSums"};
+  static constexpr std::string_view metricFrequencyLiteralMeans{"frequencyLiteralMeans"};
+  static constexpr std::string_view metricFrequencyVariableSums{
+      "frequencyVariableSums"};
+  static constexpr std::string_view metricFrequencyVariableMeans{
+      "frequencyVariableMeans"};
+  static constexpr std::string_view metricCountedBinariesLiteralSums{
+      "countedBinariesLiteralSums"};
+  static constexpr std::string_view metricCountedBinariesLiteralMeans{
+      "countedBinariesLiteralMeans"};
+  static constexpr std::string_view metricCountedBinariesVariableSums{
+      "countedBinariesVariableSums"};
+  static constexpr std::string_view metricCountedBinariesVariableMeans{
+      "countedBinariesVariableMeans"};
+  static constexpr std::string_view metricWeightedBinariesSums{"weightedBinariesSums"};
+  static constexpr std::string_view metricWeightedBinariesMeans{"weightedBinariesMeans"};
+  ClauseSorter(const Formula &formula, const std::vector<std::string> &metrics);
   bool operator()(const std::vector<std::int32_t> &left,
                   const std::vector<std::int32_t> &right) const;
 
-protected:
-  const QbfFormula &formula;
-
 private:
-  using factoryMethod = std::function<std::shared_ptr<ClauseSorter>(
-      QbfFormula &, const std::map<std::string, std::string> &)>;
-  static std::map<std::string, factoryMethod> factoryMap;
-  virtual bool sort(const std::vector<std::int32_t> &left,
-                    const std::vector<std::int32_t> &right) const = 0;
-};
-
-class BasicClauseSorter : public ClauseSorter {
-public:
-  static constexpr std::string_view CLASS_NAME{"basic"};
-  BasicClauseSorter(const QbfFormula &formula);
-
-private:
-  bool sort(const std::vector<std::int32_t> &left,
-            const std::vector<std::int32_t> &right) const override;
-};
-
-class FrequencyClauseSorter : public ClauseSorter {
-public:
-  static constexpr std::string_view CLASS_NAME{"frequency"};
-  FrequencyClauseSorter(const QbfFormula &formula);
-
-private:
-  bool sort(const std::vector<std::int32_t> &left,
-            const std::vector<std::int32_t> &right) const override;
-};
-
-class CountedBinariesClauseSorter : public ClauseSorter {
-public:
-  static constexpr std::string_view CLASS_NAME{"countedBinaries"};
-  CountedBinariesClauseSorter(const QbfFormula &formula);
-
-private:
-  bool sort(const std::vector<std::int32_t> &left,
-            const std::vector<std::int32_t> &right) const override;
-  std::size_t
-  getNewBinariesCount(const std::vector<std::int32_t> &literals) const;
-};
-
-class WeightedBinariesClauseSorter : public ClauseSorter {
-public:
-  static constexpr std::string_view CLASS_NAME{"weightedBinaries"};
-  WeightedBinariesClauseSorter(const QbfFormula &formula);
-
-private:
-  bool sort(const std::vector<std::int32_t> &left,
-            const std::vector<std::int32_t> &right) const override;
-  float getWeights(const std::vector<std::int32_t> &literals) const;
+  using compareMethod = std::function<std::int32_t(
+      const Formula &formula, const std::vector<std::int32_t> &,
+      const std::vector<std::int32_t> &)>;
+  std::vector<compareMethod> compareMethods{};
+  static compareMethod getCompareMethod(std::string_view metric);
+  static std::int32_t compareNone(const Formula &formula,
+                                  const std::vector<std::int32_t> &left,
+                                  const std::vector<std::int32_t> &right);
+  static std::int32_t compareBasic(const Formula &formula,
+                                   const std::vector<std::int32_t> &left,
+                                   const std::vector<std::int32_t> &right);
+  static std::int32_t
+  compareFrequencyLiteralSums(const Formula &formula,
+                          const std::vector<std::int32_t> &left,
+                          const std::vector<std::int32_t> &right);
+  static std::int32_t
+  compareFrequencyLiteralMeans(const Formula &formula,
+                          const std::vector<std::int32_t> &left,
+                          const std::vector<std::int32_t> &right);
+  static std::int32_t
+  compareFrequencyVariableSums(const Formula &formula,
+                           const std::vector<std::int32_t> &left,
+                           const std::vector<std::int32_t> &right);
+  static std::int32_t
+  compareFrequencyVariableMeans(const Formula &formula,
+                           const std::vector<std::int32_t> &left,
+                           const std::vector<std::int32_t> &right);
+  static std::int32_t
+  compareCountedBinariesLiteralSums(const Formula &formula,
+                                const std::vector<std::int32_t> &left,
+                                const std::vector<std::int32_t> &right);
+  static std::int32_t
+  compareCountedBinariesLiteralMeans(const Formula &formula,
+                                const std::vector<std::int32_t> &left,
+                                const std::vector<std::int32_t> &right);
+  static std::int32_t
+  compareCountedBinariesVariableSums(const Formula &formula,
+                                 const std::vector<std::int32_t> &left,
+                                 const std::vector<std::int32_t> &right);
+  static std::int32_t
+  compareCountedBinariesVariableMeans(const Formula &formula,
+                                 const std::vector<std::int32_t> &left,
+                                 const std::vector<std::int32_t> &right);
+  static std::int32_t
+  compareWeightedBinariesSums(const Formula &formula,
+                          const std::vector<std::int32_t> &left,
+                          const std::vector<std::int32_t> &right);
+  static std::int32_t
+  compareWeightedBinariesMeans(const Formula &formula,
+                          const std::vector<std::int32_t> &left,
+                          const std::vector<std::int32_t> &right);
+  const Formula formula;
 };
 
 } // namespace qbfsort

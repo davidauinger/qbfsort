@@ -2,102 +2,186 @@
 
 #include <cstdlib>
 
-std::shared_ptr<qbfsort::ClauseSorter>
-qbfsort::ClauseSorter::create(const std::string &className,
-                              qbfsort::QbfFormula &formula,
-                              const std::map<std::string, std::string> &args) {
-  auto it{factoryMap.find(className)};
-  if (it == factoryMap.end()) {
-    return nullptr;
+qbfsort::ClauseSorter::ClauseSorter(const Formula &formula,
+                                    const std::vector<std::string> &metrics)
+    : formula{formula} {
+  for (const auto &m : metrics) {
+    compareMethods.push_back(getCompareMethod(m));
   }
-  return it->second(formula, args);
 }
-
-qbfsort::ClauseSorter::ClauseSorter(const QbfFormula &formula)
-    : formula{formula} {}
 
 bool qbfsort::ClauseSorter::operator()(
     const std::vector<std::int32_t> &left,
     const std::vector<std::int32_t> &right) const {
-  return sort(left, right);
-}
-
-std::map<std::string, qbfsort::ClauseSorter::factoryMethod>
-    qbfsort::ClauseSorter::factoryMap{
-        {std::string(BasicClauseSorter::CLASS_NAME),
-         [](QbfFormula &formula,
-            const std::map<std::string, std::string> &args) {
-           return std::make_shared<BasicClauseSorter>(formula);
-         }},
-        {std::string(FrequencyClauseSorter::CLASS_NAME),
-         [](QbfFormula &formula,
-            const std::map<std::string, std::string> &args) {
-           return std::make_shared<FrequencyClauseSorter>(formula);
-         }},
-        {std::string(CountedBinariesClauseSorter::CLASS_NAME),
-         [](QbfFormula &formula,
-            const std::map<std::string, std::string> &args) {
-           return std::make_shared<CountedBinariesClauseSorter>(formula);
-         }},
-        {std::string(WeightedBinariesClauseSorter::CLASS_NAME),
-         [](QbfFormula &formula,
-            const std::map<std::string, std::string> &args) {
-           return std::make_shared<WeightedBinariesClauseSorter>(formula);
-         }}};
-
-qbfsort::BasicClauseSorter::BasicClauseSorter(const QbfFormula &formula)
-    : ClauseSorter(formula) {}
-
-bool qbfsort::BasicClauseSorter::sort(
-    const std::vector<std::int32_t> &left,
-    const std::vector<std::int32_t> &right) const {
-  return left < right;
-}
-
-qbfsort::FrequencyClauseSorter::FrequencyClauseSorter(const QbfFormula &formula)
-    : ClauseSorter(formula) {}
-
-bool qbfsort::FrequencyClauseSorter::sort(
-    const std::vector<std::int32_t> &left,
-    const std::vector<std::int32_t> &right) const {
-  return formula.getFrequencyClauseVariableSum(left) >
-         formula.getFrequencyClauseVariableSum(right);
-}
-
-qbfsort::CountedBinariesClauseSorter::CountedBinariesClauseSorter(
-    const QbfFormula &formula)
-    : ClauseSorter(formula) {}
-
-bool qbfsort::CountedBinariesClauseSorter::sort(
-    const std::vector<std::int32_t> &left,
-    const std::vector<std::int32_t> &right) const {
-  return getNewBinariesCount(left) > getNewBinariesCount(right);
-}
-
-std::size_t qbfsort::CountedBinariesClauseSorter::getNewBinariesCount(
-    const std::vector<std::int32_t> &literals) const {
-  std::set<std::pair<std::int32_t, std::int32_t>> newBinaryClauses;
-  for (auto l : literals) {
-    newBinaryClauses.merge(formula.getNewBinaryClausesByAssignment(l));
+  for (const auto &m : compareMethods) {
+    if (auto c{m(formula, left, right)}; c != 0) {
+      return c < 0;
+    }
   }
-  return newBinaryClauses.size();
+  return false;
 }
 
-qbfsort::WeightedBinariesClauseSorter::WeightedBinariesClauseSorter(
-    const QbfFormula &formula)
-    : ClauseSorter(formula) {}
-
-bool qbfsort::WeightedBinariesClauseSorter::sort(
-    const std::vector<std::int32_t> &left,
-    const std::vector<std::int32_t> &right) const {
-  return getWeights(left) > getWeights(right);
-}
-
-float qbfsort::WeightedBinariesClauseSorter::getWeights(
-    const std::vector<std::int32_t> &literals) const {
-  float weight{0.0f};
-  for (auto l : literals) {
-    weight += formula.getWeightedBinariesWeight(std::abs(l));
+qbfsort::ClauseSorter::compareMethod
+qbfsort::ClauseSorter::getCompareMethod(std::string_view metric) {
+  if (metric == metricNone) {
+    return compareNone;
   }
-  return weight;
+  if (metric == std::string(metricBasic)) {
+    return compareBasic;
+  }
+  if (metric == std::string(metricFrequencyLiteralSums)) {
+    return compareFrequencyLiteralSums;
+  }
+  if (metric == std::string(metricFrequencyLiteralMeans)) {
+    return compareFrequencyLiteralMeans;
+  }
+  if (metric == std::string(metricFrequencyVariableSums)) {
+    return compareFrequencyVariableSums;
+  }
+  if (metric == std::string(metricFrequencyVariableMeans)) {
+    return compareFrequencyVariableMeans;
+  }
+  if (metric == std::string(metricCountedBinariesLiteralSums)) {
+    return compareCountedBinariesLiteralSums;
+  }
+  if (metric == std::string(metricCountedBinariesLiteralMeans)) {
+    return compareCountedBinariesLiteralMeans;
+  }
+  if (metric == std::string(metricCountedBinariesVariableSums)) {
+    return compareCountedBinariesVariableSums;
+  }
+  if (metric == std::string(metricCountedBinariesVariableMeans)) {
+    return compareCountedBinariesVariableMeans;
+  }
+  if (metric == std::string(metricWeightedBinariesSums)) {
+    return compareWeightedBinariesSums;
+  }
+  if (metric == std::string(metricWeightedBinariesMeans)) {
+    return compareWeightedBinariesMeans;
+  }
+  throw std::runtime_error("unknown metric " + std::string(metric));
+}
+
+std::int32_t qbfsort::ClauseSorter::compareNone(
+    const Formula & /*formula*/, const std::vector<std::int32_t> & /*left*/,
+    const std::vector<std::int32_t> & /*right*/) {
+  return 0;
+}
+
+std::int32_t
+qbfsort::ClauseSorter::compareBasic(const Formula & /*formula*/,
+                                    const std::vector<std::int32_t> &left,
+                                    const std::vector<std::int32_t> &right) {
+  if (left < right) {
+    return -1;
+  }
+  if (left > right) {
+    return 1;
+  }
+  return 0;
+}
+
+std::int32_t qbfsort::ClauseSorter::compareFrequencyLiteralSums(
+    const Formula &formula, const std::vector<std::int32_t> &left,
+    const std::vector<std::int32_t> &right) {
+  return formula.getFrequencyClauseLiteralSum(right) -
+         formula.getFrequencyClauseLiteralSum(left);
+}
+
+std::int32_t qbfsort::ClauseSorter::compareFrequencyLiteralMeans(
+    const Formula &formula, const std::vector<std::int32_t> &left,
+    const std::vector<std::int32_t> &right) {
+  const auto leftMean{formula.getFrequencyClauseLiteralMean(left)};
+  const auto rightMean{formula.getFrequencyClauseLiteralMean(right)};
+  if (leftMean > rightMean) {
+    return -1;
+  }
+  if (leftMean < rightMean) {
+    return 1;
+  }
+  return 0;
+}
+
+std::int32_t qbfsort::ClauseSorter::compareFrequencyVariableSums(
+    const Formula &formula, const std::vector<std::int32_t> &left,
+    const std::vector<std::int32_t> &right) {
+  return formula.getFrequencyClauseVariableSum(right) -
+         formula.getFrequencyClauseVariableSum(left);
+}
+
+std::int32_t qbfsort::ClauseSorter::compareFrequencyVariableMeans(
+    const Formula &formula, const std::vector<std::int32_t> &left,
+    const std::vector<std::int32_t> &right) {
+  const auto leftMean{formula.getFrequencyClauseVariableMean(left)};
+  const auto rightMean{formula.getFrequencyClauseVariableMean(right)};
+  if (leftMean > rightMean) {
+    return -1;
+  }
+  if (leftMean < rightMean) {
+    return 1;
+  }
+  return 0;
+}
+
+std::int32_t qbfsort::ClauseSorter::compareCountedBinariesLiteralSums(
+    const Formula &formula, const std::vector<std::int32_t> &left,
+    const std::vector<std::int32_t> &right) {
+  return formula.getCountedBinariesClauseLiteralSum(right) -
+         formula.getCountedBinariesClauseLiteralSum(left);
+}
+
+std::int32_t qbfsort::ClauseSorter::compareCountedBinariesLiteralMeans(
+    const Formula &formula, const std::vector<std::int32_t> &left,
+    const std::vector<std::int32_t> &right) {
+  const auto leftMean{formula.getCountedBinariesClauseLiteralMean(left)};
+  const auto rightMean{formula.getCountedBinariesClauseLiteralMean(right)};
+  if (leftMean > rightMean) {
+    return -1;
+  }
+  if (leftMean < rightMean) {
+    return 1;
+  }
+  return 0;
+}
+
+std::int32_t qbfsort::ClauseSorter::compareCountedBinariesVariableSums(
+    const Formula &formula, const std::vector<std::int32_t> &left,
+    const std::vector<std::int32_t> &right) {
+  return formula.getCountedBinariesClauseVariableSum(right) -
+         formula.getCountedBinariesClauseVariableSum(left);
+}
+
+std::int32_t qbfsort::ClauseSorter::compareCountedBinariesVariableMeans(
+    const Formula &formula, const std::vector<std::int32_t> &left,
+    const std::vector<std::int32_t> &right) {
+  const auto leftMean{formula.getCountedBinariesClauseVariableMean(left)};
+  const auto rightMean{formula.getCountedBinariesClauseVariableMean(right)};
+  if (leftMean > rightMean) {
+    return -1;
+  }
+  if (leftMean < rightMean) {
+    return 1;
+  }
+  return 0;
+}
+
+std::int32_t qbfsort::ClauseSorter::compareWeightedBinariesSums(
+    const Formula &formula, const std::vector<std::int32_t> &left,
+    const std::vector<std::int32_t> &right) {
+  return formula.getWeightedBinariesWeightClauseSum(right) -
+         formula.getWeightedBinariesWeightClauseSum(left);
+}
+
+std::int32_t qbfsort::ClauseSorter::compareWeightedBinariesMeans(
+    const Formula &formula, const std::vector<std::int32_t> &left,
+    const std::vector<std::int32_t> &right) {
+  const auto leftMean{formula.getWeightedBinariesWeightClauseMean(left)};
+  const auto rightMean{formula.getWeightedBinariesWeightClauseMean(right)};
+  if (leftMean > rightMean) {
+    return -1;
+  }
+  if (leftMean < rightMean) {
+    return 1;
+  }
+  return 0;
 }

@@ -1,87 +1,86 @@
 #include <qbfsort/LiteralSorter.hpp>
 
-#include <cstdlib>
-
-std::shared_ptr<qbfsort::LiteralSorter>
-qbfsort::LiteralSorter::create(const std::string &className,
-                               QbfFormula &formula,
-                               const std::map<std::string, std::string> &args) {
-  auto it{factoryMap.find(className)};
-  if (it == factoryMap.end()) {
-    return nullptr;
+qbfsort::LiteralSorter::LiteralSorter(const Formula &formula,
+                                      const std::vector<std::string> &metrics)
+    : formula{formula} {
+  for (const auto &m : metrics) {
+    compareMethods.push_back(getCompareMethod(m));
   }
-  return it->second(formula, args);
 }
-
-qbfsort::LiteralSorter::LiteralSorter(const QbfFormula &formula)
-    : formula{formula} {}
 
 bool qbfsort::LiteralSorter::operator()(std::int32_t left,
                                         std::int32_t right) const {
-  return sort(left, right);
+  for (const auto &m : compareMethods) {
+    if (auto c{m(formula, left, right)}; c != 0) {
+      return c < 0;
+    }
+  }
+  return false;
 }
 
-std::map<std::string, qbfsort::LiteralSorter::factoryMethod>
-    qbfsort::LiteralSorter::factoryMap{
-        {std::string(BasicLiteralSorter::CLASS_NAME),
-         [](QbfFormula &formula,
-            const std::map<std::string, std::string> &args) {
-           return std::make_shared<BasicLiteralSorter>(formula);
-         }},
-        {std::string(FrequencyLiteralSorter::CLASS_NAME),
-         [](QbfFormula &formula,
-            const std::map<std::string, std::string> &args) {
-           return std::make_shared<FrequencyLiteralSorter>(formula);
-         }},
-        {std::string(CountedBinariesLiteralSorter::CLASS_NAME),
-         [](QbfFormula &formula,
-            const std::map<std::string, std::string> &args) {
-           return std::make_shared<CountedBinariesLiteralSorter>(formula);
-         }},
-        {std::string(WeightedBinariesLiteralSorter::CLASS_NAME),
-         [](QbfFormula &formula,
-            const std::map<std::string, std::string> &args) {
-           return std::make_shared<WeightedBinariesLiteralSorter>(formula);
-         }}};
-
-qbfsort::BasicLiteralSorter::BasicLiteralSorter(const QbfFormula &formula)
-    : LiteralSorter(formula) {}
-
-bool qbfsort::BasicLiteralSorter::sort(std::int32_t left,
-                                       std::int32_t right) const {
-  return left < right;
+qbfsort::LiteralSorter::compareMethod
+qbfsort::LiteralSorter::getCompareMethod(std::string_view metric) {
+  if (metric == metricNone) {
+    return compareNone;
+  }
+  if (metric == std::string(metricBasic)) {
+    return compareBasic;
+  }
+  if (metric == std::string(metricFrequencyLiteral)) {
+    return compareFrequencyLiteral;
+  }
+  if (metric == std::string(metricFrequencyVariable)) {
+    return compareFrequencyVariable;
+  }
+  if (metric == std::string(metricCountedBinariesLiteral)) {
+    return compareCountedBinariesLiteral;
+  }
+  if (metric == std::string(metricCountedBinariesVariable)) {
+    return compareCountedBinariesVariable;
+  }
+  if (metric == std::string(metricWeightedBinaries)) {
+    return compareWeightedBinaries;
+  }
+  throw std::runtime_error("unknown metric " + std::string(metric));
 }
 
-qbfsort::FrequencyLiteralSorter::FrequencyLiteralSorter(
-    const QbfFormula &formula)
-    : LiteralSorter(formula) {}
-
-bool qbfsort::FrequencyLiteralSorter::sort(std::int32_t left,
-                                           std::int32_t right) const {
-  return formula.getFrequencyVariable(std::abs(left)) >
-         formula.getFrequencyVariable(std::abs(right));
+std::int32_t qbfsort::LiteralSorter::compareNone(const Formula & /*formula*/,
+                                                 std::int32_t /*left*/,
+                                                 std::int32_t /*right*/) {
+  return 0;
 }
 
-qbfsort::CountedBinariesLiteralSorter::CountedBinariesLiteralSorter(
-    const QbfFormula &formula)
-    : LiteralSorter(formula) {}
-
-bool qbfsort::CountedBinariesLiteralSorter::sort(std::int32_t left,
-                                                 std::int32_t right) const {
-  return getNewBinariesCount(left) > getNewBinariesCount(right);
+std::int32_t qbfsort::LiteralSorter::compareBasic(const Formula & /*formula*/,
+                                                  std::int32_t left,
+                                                  std::int32_t right) {
+  return left - right;
 }
 
-std::size_t qbfsort::CountedBinariesLiteralSorter::getNewBinariesCount(
-    std::int32_t literal) const {
-  return formula.getNewBinaryClausesByAssignment(literal).size();
+std::int32_t qbfsort::LiteralSorter::compareFrequencyLiteral(
+    const Formula &formula, std::int32_t left, std::int32_t right) {
+  return formula.getFrequencyLiteral(right) - formula.getFrequencyLiteral(left);
 }
 
-qbfsort::WeightedBinariesLiteralSorter::WeightedBinariesLiteralSorter(
-    const QbfFormula &formula)
-    : LiteralSorter(formula) {}
+std::int32_t qbfsort::LiteralSorter::compareFrequencyVariable(
+    const Formula &formula, std::int32_t left, std::int32_t right) {
+  return formula.getFrequencyVariable(right) -
+         formula.getFrequencyVariable(left);
+}
 
-bool qbfsort::WeightedBinariesLiteralSorter::sort(std::int32_t left,
-                                                  std::int32_t right) const {
-  return formula.getWeightedBinariesWeight(std::abs(left)) >
-         formula.getWeightedBinariesWeight(std::abs(right));
+std::int32_t qbfsort::LiteralSorter::compareCountedBinariesLiteral(
+    const Formula &formula, std::int32_t left, std::int32_t right) {
+  return formula.getCountedBinariesLiteral(right) -
+         formula.getCountedBinariesLiteral(left);
+}
+
+std::int32_t qbfsort::LiteralSorter::compareCountedBinariesVariable(
+    const Formula &formula, std::int32_t left, std::int32_t right) {
+  return formula.getCountedBinariesVariable(right) -
+         formula.getCountedBinariesVariable(left);
+}
+
+std::int32_t qbfsort::LiteralSorter::compareWeightedBinaries(
+    const Formula &formula, std::int32_t left, std::int32_t right) {
+  return formula.getWeightedBinariesWeight(std::abs(right)) -
+         formula.getWeightedBinariesWeight(std::abs(left));
 }

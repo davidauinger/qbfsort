@@ -1,0 +1,44 @@
+{
+  "NumberOfAtoms": 0,
+  "NumberOfClauses": 0,
+  "Frequencies": {
+    "PositiveLiterals": [
+    ],
+    "NegativeLiterals": [
+    ],
+    "Variables": [
+    ],
+    "ClauseLiteralSums": [
+    ],
+    "ClauseLiteralMeans": [
+    ],
+    "ClauseVariableSums": [
+    ],
+    "ClauseVariableMeans": [
+    ]
+  },
+  "CountedBinaries": {
+    "PositiveLiterals": [
+    ],
+    "NegativeLiterals": [
+    ],
+    "Variables": [
+    ],
+    "ClauseLiteralSums": [
+    ],
+    "ClauseLiteralMeans": [
+    ],
+    "ClauseVariableSums": [
+    ],
+    "ClauseVariableMeans": [
+    ]
+  },
+  "WeightedBinaries": {
+    "Variables": [
+    ],
+    "ClauseVariableSums": [
+    ],
+    "ClauseVariableMeans": [
+    ]
+  }
+}
