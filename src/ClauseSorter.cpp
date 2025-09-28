@@ -40,15 +40,7 @@ bool BasicClauseSorter::sort(const std::vector<std::int32_t> &left, const std::v
 FrequencyClauseSorter::FrequencyClauseSorter(const QbfFormula &formula) : ClauseSorter(formula) {}
 
 bool FrequencyClauseSorter::sort(const std::vector<std::int32_t> &left, const std::vector<std::int32_t> &right) const {
-  return getFrequencies(left) > getFrequencies(right);
-}
-
-std::int32_t FrequencyClauseSorter::getFrequencies(const std::vector<std::int32_t> &literals) const {
-  std::int32_t frequency{0};
-  for (auto l : literals) {
-    frequency += formula.getFrequency(l);
-  }
-  return frequency;
+  return formula.getFrequencyClauseVariableSum(left) > formula.getFrequencyClauseVariableSum(right);
 }
 
 CountedBinariesClauseSorter::CountedBinariesClauseSorter(const QbfFormula &formula) : ClauseSorter(formula) {}

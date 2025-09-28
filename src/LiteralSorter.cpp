@@ -40,7 +40,7 @@ bool BasicLiteralSorter::sort(std::int32_t left, std::int32_t right) const {
 FrequencyLiteralSorter::FrequencyLiteralSorter(const QbfFormula &formula) : LiteralSorter(formula) {}
 
 bool FrequencyLiteralSorter::sort(std::int32_t left, std::int32_t right) const {
-  return formula.getFrequency(left) > formula.getFrequency(right);
+  return formula.getFrequencyVariable(std::abs(left)) > formula.getFrequencyVariable(std::abs(right));
 }
 
 CountedBinariesLiteralSorter::CountedBinariesLiteralSorter(const QbfFormula &formula) : LiteralSorter(formula) {}

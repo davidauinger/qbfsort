@@ -12,6 +12,7 @@
 #include "QuantifierSorter.hpp"
 
 std::map<std::string, std::string> parseArgs(int argc, char **argv);
+void printStatistics(QbfFormula &formula, const std::map<std::string, std::string> &args);
 void sortLiterals(QbfFormula &formula, const std::map<std::string, std::string> &args);
 void sortClauses(QbfFormula &formula, const std::map<std::string, std::string> &args);
 void sortQuantifiers(QbfFormula &formula, const std::map<std::string, std::string> &args);
@@ -19,6 +20,7 @@ void sortQuantifiers(QbfFormula &formula, const std::map<std::string, std::strin
 int main(int argc, char **argv) {
   QbfFormula f{QbfFormula::fromStream(std::cin)};
   std::map<std::string, std::string> args{parseArgs(argc, argv)};
+  printStatistics(f, args);
   sortLiterals(f, args);
   sortClauses(f, args);
   sortQuantifiers(f, args);
@@ -35,6 +37,15 @@ std::map<std::string, std::string> parseArgs(int argc, char **argv) {
     args.emplace(key , value);
   }
   return args;
+}
+
+void printStatistics(QbfFormula &formula, const std::map<std::string, std::string> &args) {
+  auto it{args.find("printStatistics")};
+  if (it == args.end()) {
+    return;
+  }
+  std::ofstream to{it->second};
+  formula.printStatistics(to);
 }
 
 void sortLiterals(QbfFormula &formula, const std::map<std::string, std::string> &args) {
